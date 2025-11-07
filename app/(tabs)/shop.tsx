@@ -55,7 +55,7 @@ export default function ShopScreen() {
               <View style={styles.packageHeader}>
                 <Text style={styles.packageName}>{pkg.name}</Text>
                 <View style={styles.priceContainer}>
-                  <Text style={styles.price}>{pkg.price}</Text>
+                  <Text style={styles.price}>{pkg.price.toString()}</Text>
                   <Text style={styles.currency}>{pkg.currency}</Text>
                   <Text style={styles.duration}>/{hebrew.shop.month}</Text>
                 </View>
