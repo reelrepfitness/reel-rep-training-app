@@ -1,40 +1,40 @@
-const primary = '#FF6B35';
-const secondary = '#004E89';
-const accent = '#F77F00';
-const success = '#06D6A0';
-const warning = '#FFD23F';
-const error = '#EF476F';
+const primary = '#da4477';
+const dark = '#171717';
+const light = '#ffffff';
 
 export default {
   primary,
-  secondary,
-  accent,
-  success,
-  warning,
-  error,
+  secondary: primary,
+  accent: primary,
+  success: '#10b981',
+  warning: '#f59e0b',
+  error: '#ef4444',
   
-  background: '#FFFFFF',
-  surface: '#F8F9FA',
-  card: '#FFFFFF',
+  background: light,
+  surface: '#f5f5f5',
+  card: light,
   
-  text: '#1A1A1A',
-  textSecondary: '#6C757D',
-  textLight: '#ADB5BD',
+  text: dark,
+  textSecondary: '#6b7280',
+  textLight: '#9ca3af',
   
-  border: '#E9ECEF',
-  borderLight: '#F1F3F5',
+  border: '#e5e7eb',
+  borderLight: '#f3f4f6',
   
-  tabIconDefault: '#ADB5BD',
+  tabIconDefault: '#9ca3af',
   tabIconSelected: primary,
   
-  gradient1: '#FF6B35',
-  gradient2: '#F77F00',
+  gradient1: primary,
+  gradient2: '#c23969',
   
   shadow: 'rgba(0, 0, 0, 0.1)',
   shadowDark: 'rgba(0, 0, 0, 0.2)',
   
   overlay: 'rgba(0, 0, 0, 0.5)',
   
-  statusBarLight: '#FFFFFF',
-  statusBarDark: '#1A1A1A',
+  statusBarLight: light,
+  statusBarDark: dark,
+  
+  dark,
+  light,
 };
