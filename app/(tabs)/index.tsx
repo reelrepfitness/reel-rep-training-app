@@ -40,6 +40,23 @@ export default function HomeScreen() {
   const weekStats = getWeekStats();
   const upcomingClasses = getUpcomingClasses().slice(0, 2);
 
+  const getSubscriptionProgress = (subscription: any) => {
+    const start = new Date(subscription.startDate).getTime();
+    const end = new Date(subscription.endDate).getTime();
+    const now = Date.now();
+    const total = end - start;
+    const elapsed = now - start;
+    const progress = Math.max(0, Math.min(100, (elapsed / total) * 100));
+    return progress;
+  };
+
+  const getProgressColor = (subscription: any) => {
+    const progress = getSubscriptionProgress(subscription);
+    if (progress < 50) return Colors.success;
+    if (progress < 80) return Colors.accent;
+    return Colors.primary;
+  };
+
   return (
     <View style={styles.container}>
       <View style={styles.backgroundPattern} />
@@ -51,7 +68,7 @@ export default function HomeScreen() {
       >
         <View style={styles.header}>
           <View style={styles.headerTop}>
-            <View>
+            <View style={styles.headerTextContainer}>
               <Text style={styles.welcomeText}>{hebrew.home.greeting}</Text>
               <Text style={styles.userName}>{user?.name} 💪</Text>
             </View>
@@ -67,6 +84,21 @@ export default function HomeScreen() {
               )}
             </TouchableOpacity>
           </View>
+          {user?.subscription && (
+            <View style={styles.subscriptionProgressContainer}>
+              <View style={styles.progressBar}>
+                <View 
+                  style={[
+                    styles.progressBarFill, 
+                    { 
+                      width: `${getSubscriptionProgress(user.subscription)}%`,
+                      backgroundColor: getProgressColor(user.subscription),
+                    }
+                  ]} 
+                />
+              </View>
+            </View>
+          )}
         </View>
 
         <Animated.View 
@@ -270,6 +302,20 @@ const styles = StyleSheet.create({
     textAlign: 'right',
     writingDirection: 'rtl' as const,
     marginTop: 4,
+  },
+  headerTextContainer: {
+    flex: 1,
+    marginRight: 12,
+  },
+  subscriptionProgressContainer: {
+    marginTop: 16,
+  },
+  progressBar: {
+    width: '100%',
+    height: 3,
+    backgroundColor: Colors.border + '40',
+    borderRadius: 1.5,
+    overflow: 'hidden',
   },
   profileImage: {
     width: 56,
