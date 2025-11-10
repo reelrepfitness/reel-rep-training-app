@@ -227,6 +227,16 @@ export default function ClassesScreen() {
     return dayClasses.find((c) => isClassBooked(c.id));
   };
 
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const todayDayOfWeek = today.getDay();
+
+  useEffect(() => {
+    if (selectedDay === null) {
+      setSelectedDay(todayDayOfWeek);
+    }
+  }, []);
+
   const filteredClasses = selectedDay !== null 
     ? (groupedClasses[selectedDay] || []).sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
     : [];
@@ -252,7 +262,7 @@ export default function ClassesScreen() {
           style={styles.calendarStripContainer}
           directionalLockEnabled
         >
-          {[...calendarDays].reverse().map((day, index) => {
+          {calendarDays.map((day, index) => {
             const bookedClass = getUserClassForDay(day.dayOfWeek);
             const isFirstBlockedDay = !day.isAvailable && (index === 0 || calendarDays[index - 1]?.isAvailable);
             
@@ -693,7 +703,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 12,
     gap: 8,
-    flexDirection: 'row',
+    flexDirection: 'row-reverse',
   },
   calendarDayCard: {
     minWidth: 70,
