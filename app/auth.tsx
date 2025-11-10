@@ -26,10 +26,7 @@ export default function AuthScreen() {
   const [password, setPassword] = useState('');
   const [otp, setOtp] = useState('');
 
-  useEffect(() => {
-    const timer = setTimeout(() => open(), 100);
-    return () => clearTimeout(timer);
-  }, [open]);
+
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -107,6 +104,13 @@ export default function AuthScreen() {
               resizeMode="contain"
             />
           </View>
+          <TouchableOpacity
+            style={styles.loginButton}
+            onPress={open}
+            activeOpacity={0.9}
+          >
+            <Text style={styles.loginButtonText}>כניסה</Text>
+          </TouchableOpacity>
         </View>
       </LinearGradient>
 
@@ -326,6 +330,25 @@ const styles = StyleSheet.create({
   logo: {
     width: '100%',
     height: '100%',
+  },
+  loginButton: {
+    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    paddingVertical: 18,
+    paddingHorizontal: 60,
+    borderRadius: 30,
+    marginTop: 40,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
+    elevation: 5,
+  },
+  loginButtonText: {
+    fontSize: 20,
+    fontWeight: '700' as const,
+    color: '#da4477',
+    writingDirection: 'rtl' as const,
+    textAlign: 'center',
   },
   formContainer: {
     flex: 1,
