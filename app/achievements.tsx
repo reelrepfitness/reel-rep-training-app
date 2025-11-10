@@ -1,5 +1,5 @@
 import { StyleSheet, Text, View, ScrollView, TouchableOpacity, Dimensions, Image, Alert } from "react-native";
-import { Award, TrendingUp, Target, CircleDollarSign } from 'lucide-react-native';
+import { Award, TrendingUp, Target } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAchievements } from '@/contexts/AchievementsContext';
@@ -158,7 +158,10 @@ export default function AchievementsScreen() {
           </View>
           <View style={styles.availableActions}>
             <View style={styles.pointsBadge}>
-              <CircleDollarSign size={16} color={Colors.primary} style={{ marginBottom: 2 }} />
+              <Image 
+                source={{ uri: 'https://pub-e001eb4506b145aa938b5d3badbff6a5.r2.dev/attachments/q4z20c8mkfmyhfvuuiyfn' }} 
+                style={styles.pointsCurrencyIcon}
+              />
               <Text style={styles.pointsText}>{achievement.points}</Text>
             </View>
             {isChallenge && (
@@ -247,7 +250,10 @@ export default function AchievementsScreen() {
           </View>
           <View style={styles.statDivider} />
           <View style={styles.statBox}>
-            <CircleDollarSign size={24} color={Colors.accent} />
+            <Image 
+              source={{ uri: 'https://pub-e001eb4506b145aa938b5d3badbff6a5.r2.dev/attachments/q4z20c8mkfmyhfvuuiyfn' }} 
+              style={styles.currencyIcon}
+            />
             <Text style={styles.statValue}>{totalPoints}</Text>
             <Text style={styles.statLabel}>פלטות</Text>
           </View>
@@ -584,18 +590,28 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   pointsBadge: {
-    backgroundColor: Colors.primary + '15',
+    backgroundColor: '#000000',
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 12,
     alignItems: 'center',
     flexDirection: 'row',
-    gap: 4,
+    gap: 6,
+    borderWidth: 1,
+    borderColor: '#FFD700',
   },
   pointsText: {
     fontSize: 18,
     fontWeight: '800' as const,
-    color: Colors.primary,
+    color: '#FFD700',
+  },
+  currencyIcon: {
+    width: 28,
+    height: 28,
+  },
+  pointsCurrencyIcon: {
+    width: 20,
+    height: 20,
   },
   acceptButton: {
     backgroundColor: Colors.primary,
