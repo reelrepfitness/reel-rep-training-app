@@ -1,7 +1,7 @@
-import { View, Text, StyleSheet, TouchableOpacity, I18nManager, ScrollView, ActivityIndicator, Alert } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, I18nManager, ScrollView, ActivityIndicator, Alert, Image } from 'react-native';
 import { useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Dumbbell, Mail, Lock, ArrowRight } from 'lucide-react-native';
+import { Mail, Lock, ArrowRight } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '@/contexts/AuthContext';
 import { useEffect, useState } from 'react';
@@ -98,8 +98,12 @@ export default function AuthScreen() {
         keyboardShouldPersistTaps="handled"
       >
         <View style={styles.header}>
-          <View style={styles.iconCircle}>
-            <Dumbbell size={48} color={Colors.background} />
+          <View style={styles.logoContainer}>
+            <Image 
+              source={{ uri: 'https://res.cloudinary.com/diwe4xzro/image/upload/v1762769789/gegfergerg_posbe8.png' }}
+              style={styles.logo}
+              resizeMode="contain"
+            />
           </View>
           <Text style={styles.title}>{hebrew.app.name}</Text>
           <Text style={styles.tagline}>{hebrew.app.tagline}</Text>
@@ -309,14 +313,19 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 48,
   },
-  iconCircle: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: Colors.background + '30',
+  logoContainer: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    backgroundColor: Colors.background,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 24,
+    padding: 12,
+  },
+  logo: {
+    width: '100%',
+    height: '100%',
   },
   title: {
     fontSize: 36,
