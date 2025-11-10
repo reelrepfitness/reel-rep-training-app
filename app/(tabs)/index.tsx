@@ -1,5 +1,5 @@
-import { StyleSheet, Text, View, ScrollView, TouchableOpacity, Dimensions, Image, Animated } from "react-native";
-import { Flame, Calendar, Dumbbell, Target, TrendingUp, Clock } from 'lucide-react-native';
+import { StyleSheet, Text, View, ScrollView, TouchableOpacity, Dimensions, Image, Animated, Alert } from "react-native";
+import { Flame, Calendar, Dumbbell, Target, TrendingUp, Clock, X, RefreshCw } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '@/contexts/AuthContext';
@@ -15,9 +15,9 @@ const { width } = Dimensions.get('window');
 export default function HomeScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const { user } = useAuth();
+  const { user, isAdmin } = useAuth();
   const { getWeekStats } = useWorkouts();
-  const { getUpcomingClasses } = useClasses();
+  const { getUpcomingClasses, getMyClasses, cancelBooking, getClassBooking, classes } = useClasses();
   
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(30)).current;
@@ -39,6 +39,76 @@ export default function HomeScreen() {
   
   const weekStats = getWeekStats();
   const upcomingClasses = getUpcomingClasses().slice(0, 2);
+  const myBookedClasses = getMyClasses();
+
+  const canCancelClass = (classItem: any) => {
+    const classDateTime = new Date(classItem.date + ' ' + classItem.time).getTime();
+    const now = Date.now();
+    const hoursUntilClass = (classDateTime - now) / (1000 * 60 * 60);
+    return hoursUntilClass >= 6;
+  };
+
+  const handleCancelClass = (classItem: any) => {
+    const booking = getClassBooking(classItem.id);
+    if (!booking) return;
+
+    if (!isAdmin && !canCancelClass(classItem)) {
+      Alert.alert(
+        'ביטול מאוחר',
+        'לא ניתן לבטל שיעור פחות מ-6 שעות לפני תחילתו. ביטול יגרור חיוב.',
+        [
+          { text: 'ביטול', style: 'cancel' },
+          {
+            text: 'אשר ביטול + חיוב',
+            style: 'destructive',
+            onPress: () => {
+              cancelBooking(booking.id);
+              Alert.alert('בוטל', 'השיעור בוטל. חשבונך יחויב בגין ביטול מאוחר.');
+            }
+          }
+        ]
+      );
+      return;
+    }
+
+    Alert.alert(
+      'ביטול שיעור',
+      `האם אתה בטוח שברצונך לבטל את ${classItem.title}?`,
+      [
+        { text: 'לא', style: 'cancel' },
+        {
+          text: 'כן, בטל',
+          style: 'destructive',
+          onPress: () => {
+            cancelBooking(booking.id);
+            Alert.alert('בוטל', 'השיעור בוטל בהצלחה.');
+          }
+        }
+      ]
+    );
+  };
+
+  const handleSwitchClass = (classItem: any) => {
+    const availableClasses = classes.filter(c => 
+      c.id !== classItem.id && 
+      c.date === classItem.date && 
+      c.enrolled < c.capacity &&
+      c.requiredSubscription.includes(user?.subscription?.type || 'basic')
+    );
+
+    if (availableClasses.length === 0) {
+      Alert.alert('אין שיעורים זמינים', 'אין שיעורים זמינים להחלפה באותו יום.');
+      return;
+    }
+
+    const message = 'שיעורים זמינים להחלפה:\n' + 
+      availableClasses.map(c => `• ${c.time} - ${c.title}`).join('\n');
+
+    Alert.alert('החלף שיעור', message, [
+      { text: 'ביטול', style: 'cancel' },
+      { text: 'עבור לשיעורים', onPress: () => router.push('/classes' as any) }
+    ]);
+  };
 
   const getSubscriptionProgress = (subscription: any) => {
     const start = new Date(subscription.startDate).getTime();
@@ -140,6 +210,70 @@ export default function HomeScreen() {
             </View>
           </View>
         </Animated.View>
+
+        {myBookedClasses.length > 0 && (
+          <View style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionTitle}>השיעורים הרשומים שלך</Text>
+              <TouchableOpacity onPress={() => router.push('/classes' as any)}>
+                <Text style={styles.seeAllLink}>ראה הכל</Text>
+              </TouchableOpacity>
+            </View>
+            <ScrollView 
+              horizontal 
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.bookedClassesScroll}
+            >
+              {myBookedClasses.map((classItem) => {
+                const canCancel = isAdmin || canCancelClass(classItem);
+                return (
+                  <View key={classItem.id} style={styles.bookedClassCard}>
+                    <View style={styles.bookedClassHeader}>
+                      <Text style={styles.bookedClassTitle} numberOfLines={1}>{classItem.title}</Text>
+                      {!canCancel && (
+                        <View style={styles.lateCancelBadge}>
+                          <Text style={styles.lateCancelText}>ביטול מאוחר</Text>
+                        </View>
+                      )}
+                    </View>
+                    <View style={styles.bookedClassInfo}>
+                      <View style={styles.bookedClassMeta}>
+                        <Clock size={16} color={Colors.textSecondary} />
+                        <Text style={styles.bookedClassMetaText}>{classItem.time}</Text>
+                      </View>
+                      <Text style={styles.bookedClassDate}>{classItem.date}</Text>
+                    </View>
+                    <View style={styles.bookedClassInstructor}>
+                      <Image 
+                        source={{ uri: classItem.instructorImage }} 
+                        style={styles.bookedInstructorImage}
+                      />
+                      <Text style={styles.bookedInstructorName}>{classItem.instructor}</Text>
+                    </View>
+                    <View style={styles.bookedClassActions}>
+                      <TouchableOpacity 
+                        style={[styles.bookedClassButton, styles.switchButton]}
+                        onPress={() => handleSwitchClass(classItem)}
+                        activeOpacity={0.7}
+                      >
+                        <RefreshCw size={16} color={Colors.primary} />
+                        <Text style={styles.switchButtonText}>החלף</Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity 
+                        style={[styles.bookedClassButton, styles.cancelButton]}
+                        onPress={() => handleCancelClass(classItem)}
+                        activeOpacity={0.7}
+                      >
+                        <X size={16} color={Colors.primary} />
+                        <Text style={styles.cancelButtonText}>ביטול</Text>
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                );
+              })}
+            </ScrollView>
+          </View>
+        )}
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>פעולות מהירות</Text>
@@ -634,5 +768,123 @@ const styles = StyleSheet.create({
     fontWeight: '600' as const,
     color: Colors.textSecondary,
     textAlign: 'center',
+  },
+  bookedClassesScroll: {
+    gap: 12,
+    paddingRight: 4,
+  },
+  bookedClassCard: {
+    width: width * 0.72,
+    backgroundColor: Colors.card,
+    borderRadius: 16,
+    padding: 16,
+    shadowColor: Colors.shadow,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 12,
+    elevation: 3,
+  },
+  bookedClassHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  bookedClassTitle: {
+    fontSize: 18,
+    fontWeight: '700' as const,
+    color: Colors.text,
+    textAlign: 'right',
+    writingDirection: 'rtl' as const,
+    flex: 1,
+    marginRight: 8,
+  },
+  lateCancelBadge: {
+    backgroundColor: Colors.primary + '15',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 8,
+  },
+  lateCancelText: {
+    fontSize: 10,
+    fontWeight: '700' as const,
+    color: Colors.primary,
+    writingDirection: 'rtl' as const,
+  },
+  bookedClassInfo: {
+    marginBottom: 12,
+  },
+  bookedClassMeta: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    justifyContent: 'flex-end',
+    marginBottom: 6,
+  },
+  bookedClassMetaText: {
+    fontSize: 16,
+    fontWeight: '600' as const,
+    color: Colors.text,
+    writingDirection: 'rtl' as const,
+  },
+  bookedClassDate: {
+    fontSize: 13,
+    fontWeight: '500' as const,
+    color: Colors.textSecondary,
+    textAlign: 'right',
+    writingDirection: 'rtl' as const,
+  },
+  bookedClassInstructor: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 16,
+    justifyContent: 'flex-end',
+  },
+  bookedInstructorImage: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+  },
+  bookedInstructorName: {
+    fontSize: 13,
+    fontWeight: '600' as const,
+    color: Colors.textSecondary,
+    writingDirection: 'rtl' as const,
+  },
+  bookedClassActions: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  bookedClassButton: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+    borderWidth: 1.5,
+  },
+  switchButton: {
+    backgroundColor: Colors.card,
+    borderColor: Colors.primary,
+  },
+  switchButtonText: {
+    fontSize: 14,
+    fontWeight: '700' as const,
+    color: Colors.primary,
+    writingDirection: 'rtl' as const,
+  },
+  cancelButton: {
+    backgroundColor: Colors.card,
+    borderColor: Colors.primary,
+  },
+  cancelButtonText: {
+    fontSize: 14,
+    fontWeight: '700' as const,
+    color: Colors.primary,
+    writingDirection: 'rtl' as const,
   },
 });
