@@ -113,6 +113,10 @@ export const [ClassesProvider, useClasses] = createContextHook(() => {
     return bookings.find(b => b.classId === classId && b.status === 'confirmed');
   }, [bookings]);
 
+  const getClassAttendanceCount = useCallback(() => {
+    return bookings.filter(b => b.status === 'completed').length;
+  }, [bookings]);
+
   return useMemo(() => ({
     classes,
     bookings,
@@ -123,5 +127,6 @@ export const [ClassesProvider, useClasses] = createContextHook(() => {
     getUpcomingClasses,
     isClassBooked,
     getClassBooking,
-  }), [classes, bookings, bookingsQuery.isLoading, bookClass, cancelBooking, getMyClasses, getUpcomingClasses, isClassBooked, getClassBooking]);
+    getClassAttendanceCount,
+  }), [classes, bookings, bookingsQuery.isLoading, bookClass, cancelBooking, getMyClasses, getUpcomingClasses, isClassBooked, getClassBooking, getClassAttendanceCount]);
 });

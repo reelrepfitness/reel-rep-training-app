@@ -8,6 +8,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { WorkoutProvider } from "@/contexts/WorkoutContext";
 import { ShopProvider } from "@/contexts/ShopContext";
 import { ClassesProvider } from "@/contexts/ClassesContext";
+import { AchievementsProvider } from "@/contexts/AchievementsContext";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -36,6 +37,13 @@ function RootLayoutNav() {
           title: "רשום אימון",
         }} 
       />
+      <Stack.Screen 
+        name="achievements" 
+        options={{ 
+          presentation: "card",
+          title: "הישגים",
+        }} 
+      />
     </Stack>
   );
 }
@@ -52,7 +60,9 @@ export default function RootLayout() {
           <WorkoutProvider>
             <ShopProvider>
               <ClassesProvider>
-                <RootLayoutNav />
+                <AchievementsProvider>
+                  <RootLayoutNav />
+                </AchievementsProvider>
               </ClassesProvider>
             </ShopProvider>
           </WorkoutProvider>

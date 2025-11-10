@@ -105,6 +105,8 @@ export interface UserAchievement {
   progress: number;
   completed: boolean;
   dateEarned?: string;
+  isChallenge?: boolean;
+  acceptedAt?: string;
 }
 
 export interface SubscriptionPackage {

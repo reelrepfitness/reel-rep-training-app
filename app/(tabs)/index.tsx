@@ -5,9 +5,9 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '@/contexts/AuthContext';
 import { useWorkouts } from '@/contexts/WorkoutContext';
 import { useClasses } from '@/contexts/ClassesContext';
+import { useAchievements } from '@/contexts/AchievementsContext';
 import Colors from '@/constants/colors';
 import { hebrew } from '@/constants/hebrew';
-import { mockUserAchievements } from '@/constants/mockData';
 import { useEffect, useRef } from 'react';
 
 const { width } = Dimensions.get('window');
@@ -18,6 +18,7 @@ export default function HomeScreen() {
   const { user, isAdmin } = useAuth();
   const { getWeekStats } = useWorkouts();
   const { getUpcomingClasses, getMyClasses, cancelBooking, getClassBooking, classes } = useClasses();
+  const { activeAchievements, activeChallenge } = useAchievements();
   
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(30)).current;
@@ -354,8 +355,8 @@ export default function HomeScreen() {
 
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>הישגים אחרונים</Text>
-            <TouchableOpacity>
+            <Text style={styles.sectionTitle}>הישגים פעילים</Text>
+            <TouchableOpacity onPress={() => router.push('/achievements' as any)}>
               <Text style={styles.seeAllLink}>ראה הכל</Text>
             </TouchableOpacity>
           </View>
@@ -365,36 +366,56 @@ export default function HomeScreen() {
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.achievementsScroll}
           >
-            {mockUserAchievements.slice(0, 4).map((userAchievement) => (
-              <View key={userAchievement.id} style={styles.achievementCard}>
-                <Text style={styles.achievementCategory} numberOfLines={1}>
-                  {userAchievement.achievement.description}
-                </Text>
-                <View style={styles.achievementIconContainer}>
-                  <Image 
-                    source={{ uri: userAchievement.achievement.icon }} 
-                    style={styles.achievementIcon}
-                  />
-                </View>
-                <Text style={styles.achievementTitle} numberOfLines={2}>
-                  {userAchievement.achievement.name_hebrew}
-                </Text>
-                <Text style={styles.achievementSubtitle} numberOfLines={2}>
-                  {userAchievement.achievement.description_hebrew}
-                </Text>
-                <View style={styles.achievementProgress}>
-                  <View style={styles.progressBarContainer}>
-                    <View style={[styles.progressBarFill, { 
-                      width: `${Math.min((userAchievement.progress / userAchievement.achievement.task_requirement) * 100, 100)}%`,
-                      backgroundColor: userAchievement.completed ? Colors.success : Colors.primary,
-                    }]} />
-                  </View>
-                  <Text style={styles.achievementProgressText}>
-                    {userAchievement.progress}/{userAchievement.achievement.task_requirement}
+            {activeAchievements.slice(0, 5).map((userAchievement) => {
+              const isChallenge = userAchievement.isChallenge;
+              const progressPercent = Math.min((userAchievement.progress / userAchievement.achievement.task_requirement) * 100, 100);
+              
+              return (
+                <View 
+                  key={userAchievement.id} 
+                  style={[
+                    styles.achievementCard,
+                    isChallenge && styles.challengeCard,
+                  ]}
+                >
+                  <Text style={[
+                    styles.achievementCategory,
+                    isChallenge && styles.challengeText,
+                  ]} numberOfLines={1}>
+                    {userAchievement.achievement.description}
                   </Text>
+                  <View style={styles.achievementIconContainer}>
+                    <Image 
+                      source={{ uri: userAchievement.achievement.icon }} 
+                      style={styles.achievementIcon}
+                    />
+                  </View>
+                  <Text style={[
+                    styles.achievementTitle,
+                    isChallenge && styles.challengeText,
+                  ]} numberOfLines={2}>
+                    {userAchievement.achievement.name_hebrew}
+                  </Text>
+                  <Text style={styles.achievementSubtitle} numberOfLines={2}>
+                    {userAchievement.achievement.description_hebrew}
+                  </Text>
+                  <View style={styles.achievementProgress}>
+                    <View style={styles.progressBarContainer}>
+                      <View style={[styles.progressBarFill, { 
+                        width: `${progressPercent}%`,
+                        backgroundColor: isChallenge ? '#ffffff' : Colors.primary,
+                      }]} />
+                    </View>
+                    <Text style={[
+                      styles.achievementProgressText,
+                      isChallenge && styles.challengeProgressText,
+                    ]}>
+                      {userAchievement.progress}/{userAchievement.achievement.task_requirement}
+                    </Text>
+                  </View>
                 </View>
-              </View>
-            ))}
+              );
+            })}
           </ScrollView>
         </View>
 
@@ -886,5 +907,14 @@ const styles = StyleSheet.create({
     fontWeight: '700' as const,
     color: Colors.primary,
     writingDirection: 'rtl' as const,
+  },
+  challengeCard: {
+    backgroundColor: '#171717',
+  },
+  challengeText: {
+    color: '#ffffff',
+  },
+  challengeProgressText: {
+    color: '#ffffff80',
   },
 });

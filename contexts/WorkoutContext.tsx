@@ -90,6 +90,15 @@ export const [WorkoutProvider, useWorkouts] = createContextHook(() => {
     }), { workouts: 0, duration: 0, calories: 0 });
   }, [workouts]);
 
+  const getTotalWeight = useCallback(() => {
+    return workouts.reduce((total, workout) => {
+      const workoutWeight = workout.exercises.reduce((sum, exercise) => {
+        return sum + (exercise.weight || 0) * exercise.sets * exercise.reps;
+      }, 0);
+      return total + workoutWeight;
+    }, 0);
+  }, [workouts]);
+
   const syncHealthData = useCallback(async () => {
     console.log('Syncing health data from device...');
   }, []);
@@ -104,6 +113,7 @@ export const [WorkoutProvider, useWorkouts] = createContextHook(() => {
     getWorkoutsByDateRange,
     getTotalStats,
     getWeekStats,
+    getTotalWeight,
     syncHealthData,
-  }), [workouts, healthMetrics, workoutsQuery.isLoading, addWorkout, updateWorkout, deleteWorkout, getWorkoutsByDateRange, getTotalStats, getWeekStats, syncHealthData]);
+  }), [workouts, healthMetrics, workoutsQuery.isLoading, addWorkout, updateWorkout, deleteWorkout, getWorkoutsByDateRange, getTotalStats, getWeekStats, getTotalWeight, syncHealthData]);
 });
