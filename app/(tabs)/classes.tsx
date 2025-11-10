@@ -168,6 +168,30 @@ export default function ClassesScreen() {
     return groups;
   }, {} as Record<string | number, typeof classes>);
 
+  const generateCalendarDays = () => {
+    const today = new Date();
+    const days = [];
+    
+    for (let i = 0; i < 9; i++) {
+      const date = new Date(today);
+      date.setDate(today.getDate() + i);
+      const dayOfWeek = date.getDay();
+      
+      if (dayOfWeek !== 6) {
+        days.push({
+          dayOfWeek,
+          date: date.toISOString(),
+          dayNumber: date.getDate(),
+          isAvailable: i <= 2 || isRegistrationOpen(),
+        });
+      }
+    }
+    
+    return days;
+  };
+
+  const calendarDays = generateCalendarDays();
+
   const availableDays = Object.keys(groupedClasses)
     .filter(key => key !== 'nextWeek')
     .map(Number)
@@ -201,38 +225,28 @@ export default function ClassesScreen() {
         contentContainerStyle={styles.calendarStrip}
         style={styles.calendarStripContainer}
       >
-        <TouchableOpacity
-          style={[
-            styles.dayButton,
-            selectedDay === null && styles.dayButtonActive,
-          ]}
-          onPress={() => setSelectedDay(null)}
-          activeOpacity={0.7}
-        >
-          <Calendar size={18} color={selectedDay === null ? Colors.background : Colors.textSecondary} />
-          <Text style={[
-            styles.dayButtonText,
-            selectedDay === null && styles.dayButtonTextActive,
-          ]}>הכל</Text>
-        </TouchableOpacity>
-        {availableDays.map((day) => (
+        {calendarDays.map((day, index) => (
           <TouchableOpacity
-            key={day}
+            key={`${day.dayOfWeek}-${index}`}
             style={[
-              styles.dayButton,
-              selectedDay === day && styles.dayButtonActive,
+              styles.calendarDayButton,
+              selectedDay === day.dayOfWeek && styles.calendarDayButtonActive,
+              !day.isAvailable && styles.calendarDayButtonDisabled,
             ]}
-            onPress={() => setSelectedDay(day)}
+            onPress={() => day.isAvailable && setSelectedDay(day.dayOfWeek)}
             activeOpacity={0.7}
+            disabled={!day.isAvailable}
           >
             <Text style={[
-              styles.dayButtonText,
-              selectedDay === day && styles.dayButtonTextActive,
-            ]}>{DAYS_OF_WEEK[day]}</Text>
-            <View style={[
-              styles.dayDot,
-              selectedDay === day && styles.dayDotActive,
-            ]} />
+              styles.calendarDayName,
+              selectedDay === day.dayOfWeek && styles.calendarDayNameActive,
+              !day.isAvailable && styles.calendarDayNameDisabled,
+            ]}>{DAYS_OF_WEEK[day.dayOfWeek]}</Text>
+            <Text style={[
+              styles.calendarDayNumber,
+              selectedDay === day.dayOfWeek && styles.calendarDayNumberActive,
+              !day.isAvailable && styles.calendarDayNumberDisabled,
+            ]}>{day.dayNumber}</Text>
           </TouchableOpacity>
         ))}
       </ScrollView>
@@ -389,7 +403,7 @@ function ClassCard({
                 <View style={styles.classInfo}>
                   <Text style={[styles.className, isLocked && styles.textLocked]}>{classItem.title}</Text>
                   <Text style={[styles.instructor, isLocked && styles.textLocked]}>
-                    {hebrew.classes.instructor}: {classItem.instructor}
+                    מאמן: {classItem.instructor}
                   </Text>
                 </View>
               </View>
@@ -523,6 +537,8 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 2,
     overflow: 'hidden' as const,
+    borderWidth: 1,
+    borderColor: Colors.border,
   },
   classCardLocked: {
     opacity: 0.7,
@@ -552,6 +568,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'flex-start',
     marginBottom: 12,
+    paddingRight: 70,
   },
   classHeaderWithBanner: {
     marginTop: 32,
@@ -719,12 +736,53 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: Colors.border,
     backgroundColor: Colors.background,
-    maxHeight: 56,
   },
   calendarStrip: {
     paddingHorizontal: 16,
-    paddingVertical: 8,
-    gap: 8,
+    paddingVertical: 12,
+    gap: 10,
+    flexDirection: 'row-reverse',
+  },
+  calendarDayButton: {
+    width: 60,
+    paddingVertical: 10,
+    borderRadius: 12,
+    backgroundColor: Colors.card,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  calendarDayButtonActive: {
+    backgroundColor: Colors.primary,
+    borderColor: Colors.primary,
+  },
+  calendarDayButtonDisabled: {
+    opacity: 0.4,
+  },
+  calendarDayName: {
+    fontSize: 12,
+    fontWeight: '600' as const,
+    color: Colors.textSecondary,
+    writingDirection: 'rtl' as const,
+    marginBottom: 4,
+  },
+  calendarDayNameActive: {
+    color: Colors.background,
+  },
+  calendarDayNameDisabled: {
+    color: Colors.textSecondary,
+  },
+  calendarDayNumber: {
+    fontSize: 16,
+    fontWeight: '700' as const,
+    color: Colors.text,
+  },
+  calendarDayNumberActive: {
+    color: Colors.background,
+  },
+  calendarDayNumberDisabled: {
+    color: Colors.textSecondary,
   },
   dayButton: {
     paddingHorizontal: 12,
