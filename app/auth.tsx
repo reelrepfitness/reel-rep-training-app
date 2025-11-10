@@ -99,8 +99,11 @@ export default function AuthScreen() {
               resizeMode="contain"
             />
           </View>
-          <Text style={styles.title}>{hebrew.app.name}</Text>
-          <Text style={styles.tagline}>{hebrew.app.tagline}</Text>
+          <Image 
+            source={{ uri: 'https://res.cloudinary.com/diwe4xzro/image/upload/v1762770819/4_jfele4.png' }}
+            style={styles.brandLogo}
+            resizeMode="contain"
+          />
         </View>
 
         <View style={styles.formContainer}>
@@ -319,24 +322,22 @@ const styles = StyleSheet.create({
     marginBottom: 8,
     writingDirection: 'rtl' as const,
   },
-  tagline: {
-    fontSize: 16,
-    fontWeight: '600' as const,
-    color: '#171717',
-    textAlign: 'center',
-    writingDirection: 'rtl' as const,
-    opacity: 0.7,
+  brandLogo: {
+    width: 200,
+    height: 60,
+    marginBottom: 8,
   },
   formContainer: {
     backgroundColor: Colors.background,
     borderRadius: 24,
-    padding: 24,
+    padding: 32,
     gap: 16,
     shadowColor: Colors.shadowDark,
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.3,
     shadowRadius: 16,
     elevation: 8,
+    minHeight: 480,
   },
   modeTitle: {
     fontSize: 24,

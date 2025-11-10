@@ -1,7 +1,7 @@
 export const hebrew = {
   app: {
     name: 'Reel Rep Training',
-    tagline: 'האימון שלך מתחיל כאן',
+    tagline: '',
   },
   
   auth: {
