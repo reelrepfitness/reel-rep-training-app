@@ -250,8 +250,9 @@ export default function ClassesScreen() {
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={styles.calendarStrip}
           style={styles.calendarStripContainer}
+          directionalLockEnabled
         >
-          {calendarDays.map((day, index) => {
+          {[...calendarDays].reverse().map((day, index) => {
             const bookedClass = getUserClassForDay(day.dayOfWeek);
             const isFirstBlockedDay = !day.isAvailable && (index === 0 || calendarDays[index - 1]?.isAvailable);
             
@@ -692,7 +693,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 12,
     gap: 8,
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
   },
   calendarDayCard: {
     minWidth: 70,
