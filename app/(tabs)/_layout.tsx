@@ -1,9 +1,6 @@
-import { NativeTabs, Icon } from 'expo-router/unstable-native-tabs';
-import { DynamicColorIOS } from 'react-native';
-import { Home, Calendar, ShoppingBag, User as UserIcon } from "lucide-react-native";
+import { NativeTabs, Icon, Label } from 'expo-router/unstable-native-tabs';
 import React, { useEffect } from "react";
 import { useRouter } from "expo-router";
-import Colors from "@/constants/colors";
 import { hebrew } from "@/constants/hebrew";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -18,51 +15,23 @@ export default function TabLayout() {
   }, [isAuthenticated, router]);
 
   return (
-    <Tabs
-      screenOptions={{
-        tabBarActiveTintColor: Colors.primary,
-        tabBarInactiveTintColor: Colors.tabIconDefault,
-        headerShown: false,
-        tabBarStyle: {
-          height: 60,
-          paddingBottom: 8,
-          paddingTop: 8,
-        },
-        tabBarLabelStyle: {
-          fontSize: 12,
-          fontWeight: '600' as const,
-          writingDirection: 'rtl' as const,
-        },
-      }}
-    >
-      <Tabs.Screen
-        name="index"
-        options={{
-          title: hebrew.tabs.home,
-          tabBarIcon: ({ color, size }) => <Home size={size} color={color} />,
-        }}
-      />
-      <Tabs.Screen
-        name="classes"
-        options={{
-          title: hebrew.tabs.classes,
-          tabBarIcon: ({ color, size }) => <Calendar size={size} color={color} />,
-        }}
-      />
-      <Tabs.Screen
-        name="shop"
-        options={{
-          title: hebrew.tabs.shop,
-          tabBarIcon: ({ color, size }) => <ShoppingBag size={size} color={color} />,
-        }}
-      />
-      <Tabs.Screen
-        name="profile"
-        options={{
-          title: hebrew.tabs.profile,
-          tabBarIcon: ({ color, size }) => <UserIcon size={size} color={color} />,
-        }}
-      />
-    </Tabs>
+    <NativeTabs>
+      <NativeTabs.Trigger name="index">
+        <Label>{hebrew.tabs.home}</Label>
+        <Icon sf="house.fill" drawable="ic_home" />
+      </NativeTabs.Trigger>
+      <NativeTabs.Trigger name="classes">
+        <Label>{hebrew.tabs.classes}</Label>
+        <Icon sf="calendar" drawable="ic_calendar" />
+      </NativeTabs.Trigger>
+      <NativeTabs.Trigger name="shop">
+        <Label>{hebrew.tabs.shop}</Label>
+        <Icon sf="bag.fill" drawable="ic_shop" />
+      </NativeTabs.Trigger>
+      <NativeTabs.Trigger name="profile">
+        <Label>{hebrew.tabs.profile}</Label>
+        <Icon sf="person.fill" drawable="ic_profile" />
+      </NativeTabs.Trigger>
+    </NativeTabs>
   );
 }
