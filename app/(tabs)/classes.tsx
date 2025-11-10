@@ -266,13 +266,6 @@ export default function ClassesScreen() {
           directionalLockEnabled
           inverted={Platform.OS !== 'web'}
         >
-          {blockedDaysCount > 0 && countdown && (
-            <View style={[styles.bigCountdownCard, { width: 90 + (blockedDaysCount - 1) * 30 }]}>
-              <Lock size={28} color={Colors.accent} />
-              <Text style={styles.bigCountdownTitle}>{hebrew.classes.registrationOpensIn}</Text>
-              <Text style={styles.bigCountdownText}>{countdown}</Text>
-            </View>
-          )}
           {calendarDays.map((day, index) => {
             const bookedClass = getUserClassForDay(day.dayOfWeek);
             const isToday = day.dayOfWeek === todayDayOfWeek && new Date(day.date).toDateString() === today.toDateString();
@@ -308,6 +301,13 @@ export default function ClassesScreen() {
               </TouchableOpacity>
             );
           })}
+          {blockedDaysCount > 0 && countdown && (
+            <View style={[styles.bigCountdownCard, { width: 90 + (blockedDaysCount - 1) * 30 }]}>
+              <Lock size={28} color={Colors.accent} />
+              <Text style={styles.bigCountdownTitle}>{hebrew.classes.registrationOpensIn}</Text>
+              <Text style={styles.bigCountdownText}>{countdown}</Text>
+            </View>
+          )}
         </ScrollView>
       </View>
 
@@ -547,7 +547,7 @@ const styles = StyleSheet.create({
     color: Colors.textSecondary,
   },
   dateCard: {
-    backgroundColor: Colors.primary,
+    backgroundColor: '#171717',
     borderRadius: 12,
     paddingHorizontal: 16,
     paddingVertical: 12,
