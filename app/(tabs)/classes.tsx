@@ -244,47 +244,61 @@ export default function ClassesScreen() {
         )}
       </View>
 
-      <ScrollView 
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.calendarStrip}
-        style={styles.calendarStripContainer}
-      >
-        {calendarDays.map((day, index) => {
-          const bookedClass = getUserClassForDay(day.dayOfWeek);
-          return (
-            <TouchableOpacity
-              key={`${day.dayOfWeek}-${index}`}
-              style={[
-                styles.calendarDayCard,
-                selectedDay === day.dayOfWeek && styles.calendarDayCardActive,
-                !day.isAvailable && styles.calendarDayCardDisabled,
-              ]}
-              onPress={() => {
-                if (day.isAvailable) {
-                  setSelectedDay(selectedDay === day.dayOfWeek ? null : day.dayOfWeek);
-                }
-              }}
-              activeOpacity={0.7}
-              disabled={!day.isAvailable}
-            >
-              <Text style={[
-                styles.calendarDayNumber,
-                selectedDay === day.dayOfWeek && styles.calendarDayNumberActive,
-                !day.isAvailable && styles.calendarDayNumberDisabled,
-              ]}>{day.dayNumber}</Text>
-              <Text style={[
-                styles.calendarDayName,
-                selectedDay === day.dayOfWeek && styles.calendarDayNameActive,
-                !day.isAvailable && styles.calendarDayNameDisabled,
-              ]}>{DAYS_OF_WEEK[day.dayOfWeek]}</Text>
-              {bookedClass && day.isAvailable && (
-                <Text style={styles.bookedClassTime}>רשום ל{bookedClass.time}</Text>
-              )}
-            </TouchableOpacity>
-          );
-        })}
-      </ScrollView>
+      <View style={styles.calendarStripWrapper}>
+        <ScrollView 
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.calendarStrip}
+          style={styles.calendarStripContainer}
+        >
+          {calendarDays.map((day, index) => {
+            const bookedClass = getUserClassForDay(day.dayOfWeek);
+            const isFirstBlockedDay = !day.isAvailable && (index === 0 || calendarDays[index - 1]?.isAvailable);
+            
+            return (
+              <TouchableOpacity
+                key={`${day.dayOfWeek}-${index}`}
+                style={[
+                  styles.calendarDayCard,
+                  selectedDay === day.dayOfWeek && styles.calendarDayCardActive,
+                  !day.isAvailable && styles.calendarDayCardDisabled,
+                ]}
+                onPress={() => {
+                  if (day.isAvailable) {
+                    setSelectedDay(selectedDay === day.dayOfWeek ? null : day.dayOfWeek);
+                  }
+                }}
+                activeOpacity={0.7}
+                disabled={!day.isAvailable}
+              >
+                {isFirstBlockedDay && countdown ? (
+                  <View style={styles.countdownOverlay}>
+                    <Lock size={20} color={Colors.accent} />
+                    <Text style={styles.countdownOverlayTitle}>{hebrew.classes.registrationOpensIn}</Text>
+                    <Text style={styles.countdownOverlayText}>{countdown}</Text>
+                  </View>
+                ) : (
+                  <>
+                    <Text style={[
+                      styles.calendarDayNumber,
+                      selectedDay === day.dayOfWeek && styles.calendarDayNumberActive,
+                      !day.isAvailable && styles.calendarDayNumberDisabled,
+                    ]}>{day.dayNumber}</Text>
+                    <Text style={[
+                      styles.calendarDayName,
+                      selectedDay === day.dayOfWeek && styles.calendarDayNameActive,
+                      !day.isAvailable && styles.calendarDayNameDisabled,
+                    ]}>{DAYS_OF_WEEK[day.dayOfWeek]}</Text>
+                    {bookedClass && day.isAvailable && (
+                      <Text style={styles.bookedClassTime}>רשום ל{bookedClass.time}</Text>
+                    )}
+                  </>
+                )}
+              </TouchableOpacity>
+            );
+          })}
+        </ScrollView>
+      </View>
 
       <ScrollView 
         style={styles.scrollView}
@@ -304,9 +318,6 @@ export default function ClassesScreen() {
         ) : filteredClasses.map((classItem) => {
           const booked = isClassBooked(classItem.id);
           const isFull = classItem.enrolled >= classItem.capacity;
-          const isNextWeekClass = isNextWeek(classItem.date);
-          const isRegOpen = isRegistrationOpen();
-          const isLocked = isNextWeekClass && !isRegOpen;
           
           return (
             <ClassCard
@@ -314,8 +325,6 @@ export default function ClassesScreen() {
               classItem={classItem}
               booked={booked}
               isFull={isFull}
-              isLocked={isLocked}
-              countdown={countdown}
               onBook={handleBookClass}
               getDifficultyColor={getDifficultyColor}
               getCapacityColor={getCapacityColor}
@@ -323,42 +332,6 @@ export default function ClassesScreen() {
             />
           );
         })}
-        
-        {groupedClasses['nextWeek'] && groupedClasses['nextWeek'].length > 0 && (
-          <View>
-            <View style={styles.nextWeekHeader}>
-              <Lock size={20} color={Colors.accent} />
-              <Text style={styles.nextWeekTitle}>{hebrew.classes.nextWeek}</Text>
-            </View>
-            
-            <View style={styles.nextWeekCountdown}>
-              <Text style={styles.nextWeekCountdownTitle}>{hebrew.classes.registrationOpensIn}</Text>
-              <Text style={styles.nextWeekCountdownText}>{countdown}</Text>
-            </View>
-            
-            <View style={styles.nextWeekPreview}>
-              <Text style={styles.nextWeekPreviewTitle}>תצוגה מקדימה</Text>
-              {groupedClasses['nextWeek']
-                .sort((a, b) => {
-                  const dayA = getDayOfWeek(a.date);
-                  const dayB = getDayOfWeek(b.date);
-                  if (dayA !== dayB) return dayA - dayB;
-                  return new Date(a.date).getTime() - new Date(b.date).getTime();
-                })
-                .map((classItem) => (
-                  <View key={classItem.id} style={styles.nextWeekClassCard}>
-                    <View style={styles.nextWeekClassHeader}>
-                      <View>
-                        <Text style={styles.nextWeekClassName}>{classItem.title}</Text>
-                        <Text style={styles.nextWeekClassDay}>יום {DAYS_OF_WEEK[getDayOfWeek(classItem.date)]}</Text>
-                      </View>
-                      <Text style={styles.nextWeekClassTime}>{classItem.time}</Text>
-                    </View>
-                  </View>
-                ))}
-            </View>
-          </View>
-        )}
         
         <View style={{ height: 20 }} />
       </ScrollView>
@@ -370,8 +343,6 @@ interface ClassCardProps {
   classItem: any;
   booked: boolean;
   isFull: boolean;
-  isLocked: boolean;
-  countdown: string;
   onBook: (id: string) => void;
   getDifficultyColor: (difficulty: string) => string;
   getCapacityColor: (percentage: number) => string;
@@ -382,103 +353,77 @@ function ClassCard({
   classItem, 
   booked, 
   isFull, 
-  isLocked, 
-  countdown, 
   onBook,
   getDifficultyColor,
   getCapacityColor,
   getCapacityPercentage,
 }: ClassCardProps) {
-  const classDate = new Date(classItem.date);
-  const dayNumber = classDate.getDate();
-  const dayOfWeek = DAYS_OF_WEEK[classDate.getDay()];
-  
   return (
-    <View style={[styles.classCard, isLocked && styles.classCardLocked]}>
-              {isLocked && (
-                <View style={styles.lockedBanner}>
-                  <Lock size={16} color={Colors.background} />
-                  <Text style={styles.lockedBannerText}>{hebrew.classes.nextWeek}</Text>
-                </View>
-              )}
-              
-              <View style={styles.classCardInner}>
-                <View style={styles.dateCard}>
-                  <Text style={styles.dateCardTime}>{classItem.time}</Text>
-                </View>
-                
-                <View style={[styles.classHeader, isLocked && styles.classHeaderWithBanner]}>
-                  <View style={styles.classInfo}>
-                    <Text style={[styles.className, isLocked && styles.textLocked]}>{classItem.title}</Text>
-                    <Text style={[styles.instructor, isLocked && styles.textLocked]}>
-                      מאמן: {classItem.instructor}
-                    </Text>
-                  </View>
-                </View>
-              </View>
-
-              <Text style={[styles.description, isLocked && styles.textLocked]}>{classItem.description}</Text>
-              
-              {isLocked && countdown && (
-                <View style={styles.countdownContainer}>
-                  <Text style={styles.countdownTitle}>{hebrew.classes.registrationOpensIn}</Text>
-                  <Text style={styles.countdownText}>{countdown}</Text>
-                </View>
-              )}
-
-
-
-              {!isLocked && (
-                <View style={styles.progressContainer}>
-                  <Text style={styles.capacityText}>
-                    {classItem.enrolled}/{classItem.capacity}
-                  </Text>
-                  <View style={styles.progressBarBg}>
-                    <View 
-                      style={[
-                        styles.progressBarFill,
-                        { 
-                          width: `${getCapacityPercentage(classItem.enrolled, classItem.capacity)}%`,
-                          backgroundColor: getCapacityColor(getCapacityPercentage(classItem.enrolled, classItem.capacity))
-                        }
-                      ]} 
-                    />
-                  </View>
-                </View>
-              )}
-
-      {!isLocked && (
-        <TouchableOpacity
-          style={[
-            styles.bookButton,
-            isFull && styles.bookButtonWaitlist,
-            booked && styles.bookButtonBooked,
-            booked && styles.bookButtonDisabled,
-          ]}
-          onPress={() => onBook(classItem.id)}
-          disabled={booked}
-          activeOpacity={0.7}
-        >
-          {isFull ? (
-            <View style={styles.waitlistButtonContent}>
-              <ClockAlert size={18} color={Colors.background} />
-              <Text style={styles.bookButtonText}>
-                {hebrew.classes.waitlist}
-              </Text>
-              <View style={styles.waitlistBadge}>
-                <Text style={styles.waitlistBadgeText}>0</Text>
-              </View>
-            </View>
-          ) : (
-            <Text style={[
-              styles.bookButtonText,
-              booked && styles.bookButtonTextDisabled,
-            ]}>
-              {booked ? hebrew.classes.booked : hebrew.classes.book}
+    <View style={styles.classCard}>
+      <View style={styles.classCardInner}>
+        <View style={styles.dateCard}>
+          <Text style={styles.dateCardTime}>{classItem.time}</Text>
+        </View>
+        
+        <View style={styles.classHeader}>
+          <View style={styles.classInfo}>
+            <Text style={styles.className}>{classItem.title}</Text>
+            <Text style={styles.instructor}>
+              מאמן: {classItem.instructor}
             </Text>
-          )}
-        </TouchableOpacity>
-      )}
+          </View>
+        </View>
+      </View>
+
+      <Text style={styles.description}>{classItem.description}</Text>
+      
+      <View style={styles.progressContainer}>
+        <Text style={styles.capacityText}>
+          {classItem.enrolled}/{classItem.capacity}
+        </Text>
+        <View style={styles.progressBarBg}>
+          <View 
+            style={[
+              styles.progressBarFill,
+              { 
+                width: `${getCapacityPercentage(classItem.enrolled, classItem.capacity)}%`,
+                backgroundColor: getCapacityColor(getCapacityPercentage(classItem.enrolled, classItem.capacity))
+              }
+            ]} 
+          />
+        </View>
+      </View>
+
+      <TouchableOpacity
+        style={[
+          styles.bookButton,
+          isFull && styles.bookButtonWaitlist,
+          booked && styles.bookButtonBooked,
+          booked && styles.bookButtonDisabled,
+        ]}
+        onPress={() => onBook(classItem.id)}
+        disabled={booked}
+        activeOpacity={0.7}
+      >
+        {isFull ? (
+          <View style={styles.waitlistButtonContent}>
+            <ClockAlert size={18} color={Colors.background} />
+            <Text style={styles.bookButtonText}>
+              {hebrew.classes.waitlist}
+            </Text>
+            <View style={styles.waitlistBadge}>
+              <Text style={styles.waitlistBadgeText}>0</Text>
+            </View>
+          </View>
+        ) : (
+          <Text style={[
+            styles.bookButtonText,
+            booked && styles.bookButtonTextDisabled,
+          ]}>
+            {booked ? hebrew.classes.booked : hebrew.classes.book}
+          </Text>
+        )}
+      </TouchableOpacity>
     </View>
   );
 }
@@ -735,10 +680,12 @@ const styles = StyleSheet.create({
   bookButtonTextDisabled: {
     color: Colors.textSecondary,
   },
-  calendarStripContainer: {
+  calendarStripWrapper: {
     borderBottomWidth: 1,
     borderBottomColor: Colors.border,
     backgroundColor: Colors.background,
+  },
+  calendarStripContainer: {
     maxHeight: 110,
   },
   calendarStrip: {
@@ -762,6 +709,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.05,
     shadowRadius: 2,
     elevation: 1,
+    position: 'relative' as const,
   },
   calendarDayCardActive: {
     backgroundColor: Colors.primary,
@@ -803,6 +751,34 @@ const styles = StyleSheet.create({
     color: '#10B981',
     writingDirection: 'rtl' as const,
     marginTop: 4,
+    textAlign: 'center',
+  },
+  countdownOverlay: {
+    position: 'absolute' as const,
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: Colors.accent + '20',
+    borderRadius: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 8,
+    gap: 4,
+    minWidth: 120,
+  },
+  countdownOverlayTitle: {
+    fontSize: 9,
+    fontWeight: '600' as const,
+    color: Colors.accent,
+    writingDirection: 'rtl' as const,
+    textAlign: 'center',
+  },
+  countdownOverlayText: {
+    fontSize: 11,
+    fontWeight: '700' as const,
+    color: Colors.accent,
+    writingDirection: 'rtl' as const,
     textAlign: 'center',
   },
   dayButton: {
