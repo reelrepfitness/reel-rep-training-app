@@ -170,22 +170,47 @@ export default function ClassesScreen() {
 
   const generateCalendarDays = () => {
     const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const currentDay = today.getDay();
+    const now = new Date();
+    const currentHour = now.getHours();
     const days = [];
     
-    for (let i = 0; i < 9; i++) {
+    const isThursdayAfterNoon = currentDay === 4 && currentHour >= 12;
+    
+    let endDate: Date;
+    if (isThursdayAfterNoon) {
+      endDate = new Date(today);
+      endDate.setDate(today.getDate() + (7 + (5 - currentDay)));
+    } else {
+      endDate = new Date(today);
+      const daysToFriday = (5 - currentDay + 7) % 7;
+      endDate.setDate(today.getDate() + (daysToFriday === 0 ? 7 : daysToFriday));
+    }
+    
+    console.log('[Calendar] Today:', today.toISOString());
+    console.log('[Calendar] Current day:', currentDay, '- Current hour:', currentHour);
+    console.log('[Calendar] Is Thursday after noon:', isThursdayAfterNoon);
+    console.log('[Calendar] End date:', endDate.toISOString());
+    
+    for (let i = 0; i < 14; i++) {
       const date = new Date(today);
       date.setDate(today.getDate() + i);
       const dayOfWeek = date.getDay();
       
       if (dayOfWeek !== 6) {
+        const isAvailable = date <= endDate;
+        
         days.push({
           dayOfWeek,
           date: date.toISOString(),
           dayNumber: date.getDate(),
-          isAvailable: i <= 2 || isRegistrationOpen(),
+          isAvailable,
         });
       }
     }
+    
+    console.log('[Calendar] Generated', days.length, 'days, available:', days.filter(d => d.isAvailable).length);
     
     return days;
   };
