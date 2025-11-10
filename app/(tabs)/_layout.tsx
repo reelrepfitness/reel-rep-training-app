@@ -1,4 +1,5 @@
-import { Tabs } from "expo-router";
+import { NativeTabs, Icon } from 'expo-router/unstable-native-tabs';
+import { DynamicColorIOS } from 'react-native';
 import { Home, Calendar, ShoppingBag, User as UserIcon } from "lucide-react-native";
 import React, { useEffect } from "react";
 import { useRouter } from "expo-router";
