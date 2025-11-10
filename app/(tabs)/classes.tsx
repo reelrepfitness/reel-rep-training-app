@@ -1,6 +1,6 @@
 import { StyleSheet, Text, View, ScrollView, TouchableOpacity, Alert } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Clock, Users, MapPin, Lock, ClockAlert } from 'lucide-react-native';
+import { Clock, Users, MapPin, Lock, ClockAlert, Calendar } from 'lucide-react-native';
 import { useAuth } from '@/contexts/AuthContext';
 import { useClasses } from '@/contexts/ClassesContext';
 import Colors from '@/constants/colors';
@@ -89,11 +89,18 @@ function formatCountdown(ms: number): string {
   }
 }
 
+const DAYS_OF_WEEK = ['ראשון', 'שני', 'שלישי', 'רביעי', 'חמישי', 'שישי', 'שבת'];
+
+function getDayOfWeek(date: string): number {
+  return new Date(date).getDay();
+}
+
 export default function ClassesScreen() {
   const insets = useSafeAreaInsets();
   const { user } = useAuth();
   const { classes, bookClass, isClassBooked } = useClasses();
   const [countdown, setCountdown] = useState<string>('');
+  const [selectedDay, setSelectedDay] = useState<number | null>(null);
   
   useEffect(() => {
     const updateCountdown = () => {
@@ -143,6 +150,38 @@ export default function ClassesScreen() {
     return Math.round((enrolled / capacity) * 100);
   };
 
+  const groupedClasses = classes.reduce((groups, classItem) => {
+    const dayOfWeek = getDayOfWeek(classItem.date);
+    const isNextWeekClass = isNextWeek(classItem.date);
+    
+    if (isNextWeekClass) {
+      if (!groups['nextWeek']) {
+        groups['nextWeek'] = [];
+      }
+      groups['nextWeek'].push(classItem);
+    } else {
+      if (!groups[dayOfWeek]) {
+        groups[dayOfWeek] = [];
+      }
+      groups[dayOfWeek].push(classItem);
+    }
+    return groups;
+  }, {} as Record<string | number, typeof classes>);
+
+  const availableDays = Object.keys(groupedClasses)
+    .filter(key => key !== 'nextWeek')
+    .map(Number)
+    .sort((a, b) => a - b);
+
+  const filteredClasses = selectedDay !== null 
+    ? (groupedClasses[selectedDay] || []).sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+    : classes.sort((a, b) => {
+        const dayA = getDayOfWeek(a.date);
+        const dayB = getDayOfWeek(b.date);
+        if (dayA !== dayB) return dayA - dayB;
+        return new Date(a.date).getTime() - new Date(b.date).getTime();
+      });
+
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
       <View style={styles.header}>
@@ -157,13 +196,90 @@ export default function ClassesScreen() {
       </View>
 
       <ScrollView 
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.calendarStrip}
+        style={styles.calendarStripContainer}
+      >
+        <TouchableOpacity
+          style={[
+            styles.dayButton,
+            selectedDay === null && styles.dayButtonActive,
+          ]}
+          onPress={() => setSelectedDay(null)}
+          activeOpacity={0.7}
+        >
+          <Calendar size={18} color={selectedDay === null ? Colors.background : Colors.textSecondary} />
+          <Text style={[
+            styles.dayButtonText,
+            selectedDay === null && styles.dayButtonTextActive,
+          ]}>הכל</Text>
+        </TouchableOpacity>
+        {availableDays.map((day) => (
+          <TouchableOpacity
+            key={day}
+            style={[
+              styles.dayButton,
+              selectedDay === day && styles.dayButtonActive,
+            ]}
+            onPress={() => setSelectedDay(day)}
+            activeOpacity={0.7}
+          >
+            <Text style={[
+              styles.dayButtonText,
+              selectedDay === day && styles.dayButtonTextActive,
+            ]}>{DAYS_OF_WEEK[day]}</Text>
+            <View style={[
+              styles.dayDot,
+              selectedDay === day && styles.dayDotActive,
+            ]} />
+          </TouchableOpacity>
+        ))}
+      </ScrollView>
+
+      <ScrollView 
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {classes
-          .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
-          .map((classItem) => {
+        {selectedDay === null && Object.keys(groupedClasses)
+          .filter(key => key !== 'nextWeek')
+          .map(Number)
+          .sort((a, b) => a - b)
+          .map((day) => (
+            <View key={day}>
+              <View style={styles.daySectionHeader}>
+                <Text style={styles.daySectionTitle}>יום {DAYS_OF_WEEK[day]}</Text>
+                <View style={styles.daySectionLine} />
+              </View>
+              {(groupedClasses[day] || [])
+                .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+                .map((classItem) => {
+                  const booked = isClassBooked(classItem.id);
+                  const isFull = classItem.enrolled >= classItem.capacity;
+                  const isNextWeekClass = isNextWeek(classItem.date);
+                  const isRegOpen = isRegistrationOpen();
+                  const isLocked = isNextWeekClass && !isRegOpen;
+                  
+                  return (
+                    <ClassCard
+                      key={classItem.id}
+                      classItem={classItem}
+                      booked={booked}
+                      isFull={isFull}
+                      isLocked={isLocked}
+                      countdown={countdown}
+                      onBook={handleBookClass}
+                      getDifficultyColor={getDifficultyColor}
+                      getCapacityColor={getCapacityColor}
+                      getCapacityPercentage={getCapacityPercentage}
+                    />
+                  );
+                })}
+            </View>
+          ))}
+        
+        {selectedDay !== null && filteredClasses.map((classItem) => {
           const booked = isClassBooked(classItem.id);
           const isFull = classItem.enrolled >= classItem.capacity;
           const isNextWeekClass = isNextWeek(classItem.date);
@@ -171,7 +287,88 @@ export default function ClassesScreen() {
           const isLocked = isNextWeekClass && !isRegOpen;
           
           return (
-            <View key={classItem.id} style={[styles.classCard, isLocked && styles.classCardLocked]}>
+            <ClassCard
+              key={classItem.id}
+              classItem={classItem}
+              booked={booked}
+              isFull={isFull}
+              isLocked={isLocked}
+              countdown={countdown}
+              onBook={handleBookClass}
+              getDifficultyColor={getDifficultyColor}
+              getCapacityColor={getCapacityColor}
+              getCapacityPercentage={getCapacityPercentage}
+            />
+          );
+        })}
+        
+        {groupedClasses['nextWeek'] && groupedClasses['nextWeek'].length > 0 && (
+          <View>
+            <View style={styles.nextWeekHeader}>
+              <Lock size={20} color={Colors.accent} />
+              <Text style={styles.nextWeekTitle}>{hebrew.classes.nextWeek}</Text>
+            </View>
+            
+            <View style={styles.nextWeekCountdown}>
+              <Text style={styles.nextWeekCountdownTitle}>{hebrew.classes.registrationOpensIn}</Text>
+              <Text style={styles.nextWeekCountdownText}>{countdown}</Text>
+            </View>
+            
+            <View style={styles.nextWeekPreview}>
+              <Text style={styles.nextWeekPreviewTitle}>תצוגה מקדימה</Text>
+              {groupedClasses['nextWeek']
+                .sort((a, b) => {
+                  const dayA = getDayOfWeek(a.date);
+                  const dayB = getDayOfWeek(b.date);
+                  if (dayA !== dayB) return dayA - dayB;
+                  return new Date(a.date).getTime() - new Date(b.date).getTime();
+                })
+                .map((classItem) => (
+                  <View key={classItem.id} style={styles.nextWeekClassCard}>
+                    <View style={styles.nextWeekClassHeader}>
+                      <View>
+                        <Text style={styles.nextWeekClassName}>{classItem.title}</Text>
+                        <Text style={styles.nextWeekClassDay}>יום {DAYS_OF_WEEK[getDayOfWeek(classItem.date)]}</Text>
+                      </View>
+                      <Text style={styles.nextWeekClassTime}>{classItem.time}</Text>
+                    </View>
+                  </View>
+                ))}
+            </View>
+          </View>
+        )}
+        
+        <View style={{ height: 20 }} />
+      </ScrollView>
+    </View>
+  );
+}
+
+interface ClassCardProps {
+  classItem: any;
+  booked: boolean;
+  isFull: boolean;
+  isLocked: boolean;
+  countdown: string;
+  onBook: (id: string) => void;
+  getDifficultyColor: (difficulty: string) => string;
+  getCapacityColor: (percentage: number) => string;
+  getCapacityPercentage: (enrolled: number, capacity: number) => number;
+}
+
+function ClassCard({ 
+  classItem, 
+  booked, 
+  isFull, 
+  isLocked, 
+  countdown, 
+  onBook,
+  getDifficultyColor,
+  getCapacityColor,
+  getCapacityPercentage,
+}: ClassCardProps) {
+  return (
+    <View style={[styles.classCard, isLocked && styles.classCardLocked]}>
               {isLocked && (
                 <View style={styles.lockedBanner}>
                   <Lock size={16} color={Colors.background} />
@@ -240,43 +437,38 @@ export default function ClassesScreen() {
                 </View>
               )}
 
-              {!isLocked && (
-                <TouchableOpacity
-                  style={[
-                    styles.bookButton,
-                    isFull && styles.bookButtonWaitlist,
-                    booked && styles.bookButtonBooked,
-                    booked && styles.bookButtonDisabled,
-                  ]}
-                  onPress={() => handleBookClass(classItem.id)}
-                  disabled={booked}
-                  activeOpacity={0.7}
-                >
-                  {isFull ? (
-                    <View style={styles.waitlistButtonContent}>
-                      <ClockAlert size={18} color={Colors.background} />
-                      <Text style={styles.bookButtonText}>
-                        {hebrew.classes.waitlist}
-                      </Text>
-                      <View style={styles.waitlistBadge}>
-                        <Text style={styles.waitlistBadgeText}>0</Text>
-                      </View>
-                    </View>
-                  ) : (
-                    <Text style={[
-                      styles.bookButtonText,
-                      booked && styles.bookButtonTextDisabled,
-                    ]}>
-                      {booked ? hebrew.classes.booked : hebrew.classes.book}
-                    </Text>
-                  )}
-                </TouchableOpacity>
-              )}
+      {!isLocked && (
+        <TouchableOpacity
+          style={[
+            styles.bookButton,
+            isFull && styles.bookButtonWaitlist,
+            booked && styles.bookButtonBooked,
+            booked && styles.bookButtonDisabled,
+          ]}
+          onPress={() => onBook(classItem.id)}
+          disabled={booked}
+          activeOpacity={0.7}
+        >
+          {isFull ? (
+            <View style={styles.waitlistButtonContent}>
+              <ClockAlert size={18} color={Colors.background} />
+              <Text style={styles.bookButtonText}>
+                {hebrew.classes.waitlist}
+              </Text>
+              <View style={styles.waitlistBadge}>
+                <Text style={styles.waitlistBadgeText}>0</Text>
+              </View>
             </View>
-          );
-        })}
-        <View style={{ height: 20 }} />
-      </ScrollView>
+          ) : (
+            <Text style={[
+              styles.bookButtonText,
+              booked && styles.bookButtonTextDisabled,
+            ]}>
+              {booked ? hebrew.classes.booked : hebrew.classes.book}
+            </Text>
+          )}
+        </TouchableOpacity>
+      )}
     </View>
   );
 }
@@ -498,5 +690,152 @@ const styles = StyleSheet.create({
   },
   bookButtonTextDisabled: {
     color: Colors.textSecondary,
+  },
+  calendarStripContainer: {
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.border,
+    backgroundColor: Colors.background,
+  },
+  calendarStrip: {
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    gap: 8,
+  },
+  dayButton: {
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 20,
+    backgroundColor: Colors.card,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    minWidth: 80,
+    justifyContent: 'center',
+  },
+  dayButtonActive: {
+    backgroundColor: Colors.primary,
+    borderColor: Colors.primary,
+  },
+  dayButtonText: {
+    fontSize: 14,
+    fontWeight: '600' as const,
+    color: Colors.textSecondary,
+    writingDirection: 'rtl' as const,
+  },
+  dayButtonTextActive: {
+    color: Colors.background,
+  },
+  dayDot: {
+    width: 4,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: Colors.primary,
+  },
+  dayDotActive: {
+    backgroundColor: Colors.background,
+  },
+  daySectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 24,
+    marginBottom: 16,
+    gap: 12,
+  },
+  daySectionTitle: {
+    fontSize: 20,
+    fontWeight: '700' as const,
+    color: Colors.text,
+    writingDirection: 'rtl' as const,
+  },
+  daySectionLine: {
+    flex: 1,
+    height: 2,
+    backgroundColor: Colors.border,
+    borderRadius: 1,
+  },
+  nextWeekHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    marginTop: 32,
+    marginBottom: 16,
+  },
+  nextWeekTitle: {
+    fontSize: 22,
+    fontWeight: '800' as const,
+    color: Colors.accent,
+    writingDirection: 'rtl' as const,
+  },
+  nextWeekCountdown: {
+    backgroundColor: Colors.accent + '15',
+    borderRadius: 16,
+    padding: 24,
+    marginBottom: 20,
+    borderWidth: 2,
+    borderColor: Colors.accent + '30',
+    alignItems: 'center',
+  },
+  nextWeekCountdownTitle: {
+    fontSize: 16,
+    fontWeight: '600' as const,
+    color: Colors.text,
+    writingDirection: 'rtl' as const,
+    marginBottom: 12,
+  },
+  nextWeekCountdownText: {
+    fontSize: 28,
+    fontWeight: '800' as const,
+    color: Colors.accent,
+    writingDirection: 'rtl' as const,
+  },
+  nextWeekPreview: {
+    backgroundColor: Colors.card + '80',
+    borderRadius: 16,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  nextWeekPreviewTitle: {
+    fontSize: 14,
+    fontWeight: '600' as const,
+    color: Colors.textSecondary,
+    writingDirection: 'rtl' as const,
+    marginBottom: 12,
+    textAlign: 'center',
+  },
+  nextWeekClassCard: {
+    backgroundColor: Colors.background,
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 8,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  nextWeekClassHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  nextWeekClassName: {
+    fontSize: 16,
+    fontWeight: '600' as const,
+    color: Colors.text,
+    writingDirection: 'rtl' as const,
+    marginBottom: 4,
+  },
+  nextWeekClassDay: {
+    fontSize: 12,
+    fontWeight: '500' as const,
+    color: Colors.textSecondary,
+    writingDirection: 'rtl' as const,
+  },
+  nextWeekClassTime: {
+    fontSize: 14,
+    fontWeight: '600' as const,
+    color: Colors.primary,
+    writingDirection: 'rtl' as const,
   },
 });
