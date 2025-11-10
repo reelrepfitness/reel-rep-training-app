@@ -261,10 +261,12 @@ export default function ClassesScreen() {
           contentContainerStyle={styles.calendarStrip}
           style={styles.calendarStripContainer}
           directionalLockEnabled
+          inverted
         >
           {calendarDays.map((day, index) => {
             const bookedClass = getUserClassForDay(day.dayOfWeek);
             const isFirstBlockedDay = !day.isAvailable && (index === 0 || calendarDays[index - 1]?.isAvailable);
+            const isToday = day.dayOfWeek === todayDayOfWeek && new Date(day.date).toDateString() === today.toDateString();
             
             return (
               <TouchableOpacity
@@ -273,6 +275,7 @@ export default function ClassesScreen() {
                   styles.calendarDayCard,
                   selectedDay === day.dayOfWeek && styles.calendarDayCardActive,
                   !day.isAvailable && styles.calendarDayCardDisabled,
+                  isToday && styles.calendarDayCardToday,
                 ]}
                 onPress={() => {
                   if (day.isAvailable) {
@@ -703,7 +706,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 12,
     gap: 8,
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
   },
   calendarDayCard: {
     minWidth: 70,
@@ -731,6 +734,10 @@ const styles = StyleSheet.create({
   },
   calendarDayCardDisabled: {
     opacity: 0.4,
+  },
+  calendarDayCardToday: {
+    borderColor: Colors.accent,
+    borderWidth: 2,
   },
   calendarDayNumber: {
     fontSize: 18,
