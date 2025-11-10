@@ -1,5 +1,5 @@
 import { StyleSheet, Text, View, ScrollView, TouchableOpacity, Dimensions, Image, Animated, Alert, Modal } from "react-native";
-import { Flame, Calendar, Target, TrendingUp, Clock, X, RefreshCw, Users } from 'lucide-react-native';
+import { Flame, Calendar, Target, TrendingUp, Clock, X, RefreshCw, Users, Lock, Trophy } from 'lucide-react-native';
 import WorkoutIcon from '@/components/WorkoutIcon';
 import FireIcon from '@/components/FireIcon';
 import { useRouter } from 'expo-router';
@@ -20,7 +20,7 @@ export default function HomeScreen() {
   const { user, isAdmin, updateUser } = useAuth();
   const { getWeekStats } = useWorkouts();
   const { getUpcomingClasses, getMyClasses, cancelBooking, getClassBooking, classes } = useClasses();
-  const { activeAchievements, activeChallenge } = useAchievements();
+  const { activeAchievements, activeChallenge, challengeAchievements, hasActiveChallenge, acceptChallenge, calculateProgress, getClassAttendanceCount = () => 0 } = useAchievements();
   
   const lateCancellations = user?.lateCancellations || 0;
   const blockEndDate = user?.blockEndDate || null;
@@ -421,9 +421,64 @@ export default function HomeScreen() {
           </View>
         )}
 
+        {/* Challenge Section */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>הישגים פעילים</Text>
+            <Text style={styles.sectionTitle}>אתגר פעיל</Text>
+            <TouchableOpacity onPress={() => router.push('/achievements' as any)}>
+              <Text style={styles.seeAllLink}>ראה הכל</Text>
+            </TouchableOpacity>
+          </View>
+          
+          {activeChallenge ? (
+            <View style={styles.activeChallengeCard}>
+              <View style={styles.challengeBadge}>
+                <Trophy size={16} color="#ffffff" />
+                <Text style={styles.challengeBadgeText}>אתגר</Text>
+              </View>
+              <View style={styles.challengeIconContainer}>
+                <Image 
+                  source={{ uri: activeChallenge.achievement.icon }} 
+                  style={styles.challengeIcon}
+                />
+              </View>
+              <Text style={styles.challengeTitle} numberOfLines={2}>
+                {activeChallenge.achievement.name_hebrew}
+              </Text>
+              <Text style={styles.challengeDescription} numberOfLines={3}>
+                {activeChallenge.achievement.description_hebrew}
+              </Text>
+              <View style={styles.challengeProgress}>
+                <View style={styles.challengeProgressBarContainer}>
+                  <View style={[styles.challengeProgressBarFill, { 
+                    width: `${Math.min((activeChallenge.progress / activeChallenge.achievement.task_requirement) * 100, 100)}%`,
+                  }]} />
+                </View>
+                <Text style={styles.challengeProgressText}>
+                  {activeChallenge.progress}/{activeChallenge.achievement.task_requirement}
+                </Text>
+              </View>
+            </View>
+          ) : (
+            <View style={styles.emptyChallengeCard}>
+              <Lock size={48} color={Colors.textSecondary} />
+              <Text style={styles.emptyChallengeTitle}>אין אתגר פעיל</Text>
+              <Text style={styles.emptyChallengeSubtitle}>בחר אתגר חדש מרשימת ההישגים</Text>
+              <TouchableOpacity 
+                style={styles.selectChallengeButton}
+                onPress={() => router.push('/achievements' as any)}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.selectChallengeButtonText}>בחר אתגר</Text>
+              </TouchableOpacity>
+            </View>
+          )}
+        </View>
+
+        {/* All Non-Challenge Achievements */}
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>ההישגים שלך</Text>
             <TouchableOpacity onPress={() => router.push('/achievements' as any)}>
               <Text style={styles.seeAllLink}>ראה הכל</Text>
             </TouchableOpacity>
@@ -434,56 +489,69 @@ export default function HomeScreen() {
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.achievementsScroll}
           >
-            {activeAchievements.slice(0, 5).map((userAchievement) => {
-              const isChallenge = userAchievement.isChallenge;
-              const progressPercent = Math.min((userAchievement.progress / userAchievement.achievement.task_requirement) * 100, 100);
-              
-              return (
-                <View 
-                  key={userAchievement.id} 
-                  style={[
-                    styles.achievementCard,
-                    isChallenge && styles.challengeCard,
-                  ]}
-                >
-                  <Text style={[
-                    styles.achievementCategory,
-                    isChallenge && styles.challengeText,
-                  ]} numberOfLines={1}>
-                    {userAchievement.achievement.description}
-                  </Text>
-                  <View style={styles.achievementIconContainer}>
-                    <Image 
-                      source={{ uri: userAchievement.achievement.icon }} 
-                      style={styles.achievementIcon}
-                    />
-                  </View>
-                  <Text style={[
-                    styles.achievementTitle,
-                    isChallenge && styles.challengeText,
-                  ]} numberOfLines={2}>
-                    {userAchievement.achievement.name_hebrew}
-                  </Text>
-                  <Text style={styles.achievementSubtitle} numberOfLines={2}>
-                    {userAchievement.achievement.description_hebrew}
-                  </Text>
-                  <View style={styles.achievementProgress}>
-                    <View style={styles.progressBarContainer}>
-                      <View style={[styles.progressBarFill, { 
-                        width: `${progressPercent}%`,
-                        backgroundColor: isChallenge ? '#ffffff' : Colors.primary,
-                      }]} />
+            {activeAchievements
+              .filter(ua => !ua.isChallenge)
+              .map((userAchievement) => {
+                const progressPercent = Math.min((userAchievement.progress / userAchievement.achievement.task_requirement) * 100, 100);
+                const isLocked = userAchievement.achievement.task_type === 'classes_attended' && 
+                                userAchievement.progress < userAchievement.achievement.task_requirement;
+                
+                return (
+                  <View 
+                    key={userAchievement.id} 
+                    style={[
+                      styles.achievementCard,
+                      isLocked && styles.lockedAchievementCard,
+                    ]}
+                  >
+                    <View style={styles.achievementHeader}>
+                      <Text style={styles.achievementCategoryText} numberOfLines={1}>
+                        {userAchievement.achievement.catagory || 'הישג'}
+                      </Text>
+                      {isLocked && (
+                        <View style={styles.lockBadge}>
+                          <Lock size={12} color={Colors.textSecondary} />
+                        </View>
+                      )}
+                    </View>
+                    <View style={styles.achievementIconContainer}>
+                      <Image 
+                        source={{ uri: userAchievement.achievement.icon }} 
+                        style={[
+                          styles.achievementIcon,
+                          isLocked && styles.lockedAchievementIcon,
+                        ]}
+                      />
                     </View>
                     <Text style={[
-                      styles.achievementProgressText,
-                      isChallenge && styles.challengeProgressText,
-                    ]}>
-                      {userAchievement.progress}/{userAchievement.achievement.task_requirement}
+                      styles.achievementTitle,
+                      isLocked && styles.lockedText,
+                    ]} numberOfLines={2}>
+                      {userAchievement.achievement.name_hebrew}
                     </Text>
+                    <Text style={[
+                      styles.achievementSubtitle,
+                      isLocked && styles.lockedText,
+                    ]} numberOfLines={2}>
+                      {userAchievement.achievement.description_hebrew}
+                    </Text>
+                    <View style={styles.achievementProgress}>
+                      <View style={styles.progressBarContainer}>
+                        <View style={[styles.progressBarFill, { 
+                          width: `${progressPercent}%`,
+                          backgroundColor: isLocked ? Colors.textSecondary : Colors.primary,
+                        }]} />
+                      </View>
+                      <Text style={[
+                        styles.achievementProgressText,
+                        isLocked && styles.lockedText,
+                      ]}>
+                        {userAchievement.progress}/{userAchievement.achievement.task_requirement}
+                      </Text>
+                    </View>
                   </View>
-                </View>
-              );
-            })}
+                );
+              })}
           </ScrollView>
         </View>
 
@@ -976,15 +1044,7 @@ const styles = StyleSheet.create({
     color: Colors.primary,
     writingDirection: 'rtl' as const,
   },
-  challengeCard: {
-    backgroundColor: '#171717',
-  },
-  challengeText: {
-    color: '#ffffff',
-  },
-  challengeProgressText: {
-    color: '#ffffff80',
-  },
+
   upcomingClassesScroll: {
     gap: 12,
     paddingRight: 4,
@@ -1111,5 +1171,154 @@ const styles = StyleSheet.create({
     fontWeight: '700' as const,
     color: Colors.primary,
     writingDirection: 'rtl' as const,
+  },
+  activeChallengeCard: {
+    backgroundColor: '#171717',
+    borderRadius: 20,
+    padding: 24,
+    alignItems: 'center',
+    shadowColor: Colors.shadow,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
+    elevation: 4,
+  },
+  challengeBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: Colors.primary,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 20,
+    marginBottom: 16,
+  },
+  challengeBadgeText: {
+    fontSize: 12,
+    fontWeight: '700' as const,
+    color: '#ffffff',
+    writingDirection: 'rtl' as const,
+  },
+  challengeIconContainer: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    backgroundColor: '#ffffff15',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 16,
+  },
+  challengeIcon: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+  },
+  challengeTitle: {
+    fontSize: 22,
+    fontWeight: '800' as const,
+    color: '#ffffff',
+    textAlign: 'center',
+    marginBottom: 8,
+    writingDirection: 'rtl' as const,
+  },
+  challengeDescription: {
+    fontSize: 14,
+    fontWeight: '500' as const,
+    color: '#ffffff80',
+    textAlign: 'center',
+    marginBottom: 20,
+    writingDirection: 'rtl' as const,
+  },
+  challengeProgress: {
+    width: '100%',
+  },
+  challengeProgressBarContainer: {
+    width: '100%',
+    height: 8,
+    backgroundColor: '#ffffff20',
+    borderRadius: 4,
+    overflow: 'hidden',
+    marginBottom: 12,
+  },
+  challengeProgressBarFill: {
+    height: '100%',
+    backgroundColor: '#ffffff',
+    borderRadius: 4,
+  },
+  challengeProgressText: {
+    fontSize: 14,
+    fontWeight: '700' as const,
+    color: '#ffffff',
+    textAlign: 'center',
+  },
+  emptyChallengeCard: {
+    backgroundColor: Colors.card,
+    borderRadius: 20,
+    padding: 40,
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: Colors.border,
+    borderStyle: 'dashed' as const,
+  },
+  emptyChallengeTitle: {
+    fontSize: 18,
+    fontWeight: '700' as const,
+    color: Colors.text,
+    textAlign: 'center',
+    marginTop: 16,
+    marginBottom: 8,
+    writingDirection: 'rtl' as const,
+  },
+  emptyChallengeSubtitle: {
+    fontSize: 14,
+    fontWeight: '500' as const,
+    color: Colors.textSecondary,
+    textAlign: 'center',
+    marginBottom: 20,
+    writingDirection: 'rtl' as const,
+  },
+  selectChallengeButton: {
+    backgroundColor: Colors.primary,
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 12,
+  },
+  selectChallengeButtonText: {
+    fontSize: 14,
+    fontWeight: '700' as const,
+    color: Colors.background,
+    writingDirection: 'rtl' as const,
+  },
+  achievementHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    width: '100%',
+    marginBottom: 8,
+  },
+  achievementCategoryText: {
+    fontSize: 11,
+    fontWeight: '700' as const,
+    color: Colors.primary,
+    textTransform: 'uppercase' as const,
+    letterSpacing: 0.5,
+    writingDirection: 'rtl' as const,
+  },
+  lockBadge: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    backgroundColor: Colors.border,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  lockedAchievementCard: {
+    opacity: 0.6,
+  },
+  lockedAchievementIcon: {
+    opacity: 0.4,
+  },
+  lockedText: {
+    color: Colors.textSecondary,
   },
 });
