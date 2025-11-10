@@ -1,6 +1,7 @@
 import { StyleSheet, Text, View, ScrollView, TouchableOpacity, Dimensions, Image, Animated, Alert } from "react-native";
 import { Flame, Calendar, Target, TrendingUp, Clock, X, RefreshCw } from 'lucide-react-native';
 import WorkoutIcon from '@/components/WorkoutIcon';
+import FireIcon from '@/components/FireIcon';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '@/contexts/AuthContext';
@@ -198,7 +199,7 @@ export default function HomeScreen() {
             <View style={styles.statDivider} />
             <View style={styles.statItem}>
               <View style={[styles.statIconContainer, { backgroundColor: Colors.accent + '15' }]}>
-                <Flame size={24} color={Colors.accent} />
+                <FireIcon size={24} />
               </View>
               <Text style={styles.statValue}>{weekStats.calories}</Text>
               <Text style={styles.statLabel}>{hebrew.home.calories}</Text>
