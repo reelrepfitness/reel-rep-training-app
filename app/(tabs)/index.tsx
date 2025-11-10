@@ -188,7 +188,11 @@ export default function HomeScreen() {
           <View style={styles.statsRow}>
             <View style={styles.statItem}>
               <View style={[styles.statIconContainer, { backgroundColor: Colors.primary + '15' }]}>
-                <Dumbbell size={24} color={Colors.primary} />
+                <Image
+                  source={{ uri: 'https://pub-e001eb4506b145aa938b5d3badbff6a5.r2.dev/attachments/7msw6c3bu6tvqyqgu2du2' }}
+                  style={{ width: 24, height: 24 }}
+                  resizeMode="contain"
+                />
               </View>
               <Text style={styles.statValue}>{weekStats.workouts}</Text>
               <Text style={styles.statLabel}>{hebrew.home.workouts}</Text>
@@ -286,7 +290,11 @@ export default function HomeScreen() {
             >
               <View style={styles.quickActionContent}>
                 <View style={styles.quickActionHeader}>
-                  <Dumbbell size={28} color={Colors.background} />
+                  <Image
+                    source={{ uri: 'https://pub-e001eb4506b145aa938b5d3badbff6a5.r2.dev/attachments/7msw6c3bu6tvqyqgu2du2' }}
+                    style={{ width: 28, height: 28 }}
+                    resizeMode="contain"
+                  />
                 </View>
                 <Text style={styles.quickActionTitle}>רשום אימון</Text>
                 <Text style={styles.quickActionSubtitle}>תיעוד מהיר של האימון</Text>
