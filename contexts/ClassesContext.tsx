@@ -3,15 +3,105 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { Class, ClassBooking } from '@/constants/types';
-import { mockClasses } from '@/constants/mockData';
 import { useAuth } from './AuthContext';
+import { supabase } from '@/constants/supabase';
 
 const BOOKINGS_STORAGE_KEY = '@reelrep_bookings';
 
+interface ClassSchedule {
+  id: string;
+  name: string;
+  description: string | null;
+  coach_id: string | null;
+  coach_name: string;
+  day_of_week: number;
+  start_time: string;
+  duration_minutes: number;
+  max_participants: number;
+  required_subscription_level: number;
+  location: string | null;
+  class_type: string;
+  is_active: boolean;
+}
+
+function generateWeeklyClasses(schedules: ClassSchedule[], weeksAhead: number = 2): Class[] {
+  const classes: Class[] = [];
+  const now = new Date();
+  
+  for (let week = 0; week < weeksAhead; week++) {
+    for (const schedule of schedules) {
+      const dayOffset = schedule.day_of_week - now.getDay() + (week * 7);
+      const classDate = new Date(now);
+      classDate.setDate(now.getDate() + dayOffset);
+      classDate.setHours(0, 0, 0, 0);
+      
+      const [hours, minutes] = schedule.start_time.split(':');
+      const timeString = `${hours}:${minutes}`;
+      
+      const difficultyMap: Record<string, string> = {
+        'crossfit': 'advanced',
+        'strength': 'intermediate',
+        'cardio': 'beginner',
+      };
+      
+      classes.push({
+        id: `${schedule.id}-${classDate.toISOString().split('T')[0]}`,
+        title: schedule.name,
+        instructor: schedule.coach_name,
+        date: classDate.toISOString().split('T')[0],
+        time: timeString,
+        duration: schedule.duration_minutes,
+        capacity: schedule.max_participants,
+        enrolled: 0,
+        location: schedule.location || 'Main Gym',
+        difficulty: difficultyMap[schedule.class_type.toLowerCase()] || 'intermediate',
+        description: schedule.description || '',
+        requiredSubscription: schedule.required_subscription_level === 1 
+          ? ['unlimited', 'premium'] 
+          : ['unlimited'],
+      });
+    }
+  }
+  
+  return classes.sort((a, b) => {
+    const dateA = new Date(`${a.date} ${a.time}`);
+    const dateB = new Date(`${b.date} ${b.time}`);
+    return dateA.getTime() - dateB.getTime();
+  });
+}
+
 export const [ClassesProvider, useClasses] = createContextHook(() => {
   const { user } = useAuth();
-  const [classes] = useState<Class[]>(mockClasses);
+  const [classes, setClasses] = useState<Class[]>([]);
   const [bookings, setBookings] = useState<ClassBooking[]>([]);
+
+  const schedulesQuery = useQuery({
+    queryKey: ['class-schedules'],
+    queryFn: async () => {
+      console.log('Fetching class schedules from Supabase...');
+      const { data, error } = await supabase
+        .from('class_schedules')
+        .select('*')
+        .eq('is_active', true)
+        .order('day_of_week', { ascending: true });
+      
+      if (error) {
+        console.error('Error fetching class schedules:', error);
+        throw error;
+      }
+      
+      console.log('Fetched schedules:', data);
+      return data as ClassSchedule[];
+    },
+  });
+
+  useEffect(() => {
+    if (schedulesQuery.data) {
+      const generated = generateWeeklyClasses(schedulesQuery.data);
+      console.log('Generated classes:', generated);
+      setClasses(generated);
+    }
+  }, [schedulesQuery.data]);
 
   const bookingsQuery = useQuery({
     queryKey: ['bookings', user?.id],
@@ -120,7 +210,7 @@ export const [ClassesProvider, useClasses] = createContextHook(() => {
   return useMemo(() => ({
     classes,
     bookings,
-    isLoading: bookingsQuery.isLoading,
+    isLoading: bookingsQuery.isLoading || schedulesQuery.isLoading,
     bookClass,
     cancelBooking,
     getMyClasses,
@@ -128,5 +218,5 @@ export const [ClassesProvider, useClasses] = createContextHook(() => {
     isClassBooked,
     getClassBooking,
     getClassAttendanceCount,
-  }), [classes, bookings, bookingsQuery.isLoading, bookClass, cancelBooking, getMyClasses, getUpcomingClasses, isClassBooked, getClassBooking, getClassAttendanceCount]);
+  }), [classes, bookings, bookingsQuery.isLoading, schedulesQuery.isLoading, bookClass, cancelBooking, getMyClasses, getUpcomingClasses, isClassBooked, getClassBooking, getClassAttendanceCount]);
 });
