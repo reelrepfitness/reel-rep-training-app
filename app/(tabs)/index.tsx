@@ -1,5 +1,5 @@
-import { StyleSheet, Text, View, ScrollView, TouchableOpacity, Dimensions, Image, Animated, Alert } from "react-native";
-import { Flame, Calendar, Target, TrendingUp, Clock, X, RefreshCw } from 'lucide-react-native';
+import { StyleSheet, Text, View, ScrollView, TouchableOpacity, Dimensions, Image, Animated, Alert, Modal } from "react-native";
+import { Flame, Calendar, Target, TrendingUp, Clock, X, RefreshCw, Users } from 'lucide-react-native';
 import WorkoutIcon from '@/components/WorkoutIcon';
 import FireIcon from '@/components/FireIcon';
 import { useRouter } from 'expo-router';
@@ -17,10 +17,13 @@ const { width } = Dimensions.get('window');
 export default function HomeScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const { user, isAdmin } = useAuth();
+  const { user, isAdmin, updateUser } = useAuth();
   const { getWeekStats } = useWorkouts();
   const { getUpcomingClasses, getMyClasses, cancelBooking, getClassBooking, classes } = useClasses();
   const { activeAchievements, activeChallenge } = useAchievements();
+  
+  const lateCancellations = user?.lateCancellations || 0;
+  const blockEndDate = user?.blockEndDate || null;
   
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(30)).current;
@@ -56,10 +59,15 @@ export default function HomeScreen() {
     const booking = getClassBooking(classItem.id);
     if (!booking) return;
 
+    if (blockEndDate && new Date(blockEndDate) > new Date()) {
+      Alert.alert('חשבון חסום', 'לא ניתן לבטל שיעורים כרגע. החשבון שלך חסום עד ' + new Date(blockEndDate).toLocaleDateString('he-IL'));
+      return;
+    }
+
     if (!isAdmin && !canCancelClass(classItem)) {
       Alert.alert(
         'ביטול מאוחר',
-        'לא ניתן לבטל שיעור פחות מ-6 שעות לפני תחילתו. ביטול יגרור חיוב.',
+        'לא ניתן לבטל שיעור פחות מ-6 שעות לפני תחילתו. ביטול יגרור חיוב. ביטולים מאוחרים: ' + lateCancellations + '/3',
         [
           { text: 'ביטול', style: 'cancel' },
           {
@@ -67,7 +75,20 @@ export default function HomeScreen() {
             style: 'destructive',
             onPress: () => {
               cancelBooking(booking.id);
-              Alert.alert('בוטל', 'השיעור בוטל. חשבונך יחויב בגין ביטול מאוחר.');
+              const newLateCancellations = lateCancellations + 1;
+              
+              if (newLateCancellations >= 3) {
+                const blockEnd = new Date();
+                blockEnd.setDate(blockEnd.getDate() + 3);
+                updateUser({ 
+                  lateCancellations: newLateCancellations,
+                  blockEndDate: blockEnd.toISOString()
+                });
+                Alert.alert('חשבון חסום', 'ביטלת 3 שיעורים באיחור. החשבון שלך חסום ל-3 ימים. חשבונך יחויב.');
+              } else {
+                updateUser({ lateCancellations: newLateCancellations });
+                Alert.alert('בוטל', `השיעור בוטל. חשבונך יחויב בגין ביטול מאוחר. ביטולים מאוחרים: ${newLateCancellations}/3`);
+              }
             }
           }
         ]
@@ -92,7 +113,24 @@ export default function HomeScreen() {
     );
   };
 
+  const canSwitchClass = (classItem: any) => {
+    const classDateTime = new Date(classItem.date + ' ' + classItem.time).getTime();
+    const now = Date.now();
+    const hoursUntilClass = (classDateTime - now) / (1000 * 60 * 60);
+    return hoursUntilClass >= 1;
+  };
+
   const handleSwitchClass = (classItem: any) => {
+    if (blockEndDate && new Date(blockEndDate) > new Date()) {
+      Alert.alert('חשבון חסום', 'לא ניתן להחליף שיעורים כרגע. החשבון שלך חסום עד ' + new Date(blockEndDate).toLocaleDateString('he-IL'));
+      return;
+    }
+
+    if (!canSwitchClass(classItem)) {
+      Alert.alert('זמן החלפה עבר', 'לא ניתן להחליף שיעור פחות משעה לפני תחילתו.');
+      return;
+    }
+
     const availableClasses = classes.filter(c => 
       c.id !== classItem.id && 
       c.date === classItem.date && 
@@ -314,45 +352,72 @@ export default function HomeScreen() {
         {upcomingClasses.length > 0 && (
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle}>השיעורים הבאים שלך</Text>
+              <Text style={styles.sectionTitle}>השיעורים הבאים</Text>
               <TouchableOpacity onPress={() => router.push('/classes' as any)}>
                 <Text style={styles.seeAllLink}>ראה הכל</Text>
               </TouchableOpacity>
             </View>
-            {upcomingClasses.map((classItem) => (
-              <TouchableOpacity
-                key={classItem.id}
-                style={styles.classCard}
-                activeOpacity={0.7}
-                onPress={() => router.push('/classes' as any)}
-              >
-                <View style={styles.classCardHeader}>
-                  <View style={styles.classInfo}>
-                    <Text style={styles.classTitle}>{classItem.title}</Text>
-                    <View style={styles.classMetaRow}>
-                      <View style={styles.classMeta}>
-                        <Clock size={14} color={Colors.textSecondary} />
-                        <Text style={styles.classMetaText}>{classItem.time}</Text>
-                      </View>
-                      <View style={styles.classMeta}>
-                        <Target size={14} color={Colors.textSecondary} />
-                        <Text style={styles.classMetaText}>{classItem.duration} {hebrew.classes.minutes}</Text>
+            <ScrollView 
+              horizontal 
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.upcomingClassesScroll}
+            >
+              {upcomingClasses.map((classItem) => {
+                const capacityPercent = (classItem.enrolled / classItem.capacity) * 100;
+                return (
+                  <View
+                    key={classItem.id}
+                    style={styles.upcomingClassCard}
+                  >
+                    <View style={styles.upcomingClassHeader}>
+                      <Text style={styles.upcomingClassTitle} numberOfLines={1}>{classItem.title}</Text>
+                      <View style={styles.timeCard}>
+                        <Clock size={14} color={Colors.background} />
+                        <Text style={styles.timeText}>{classItem.time}</Text>
                       </View>
                     </View>
+                    
+                    <View style={styles.upcomingClassInstructor}>
+                      <Image 
+                        source={{ uri: classItem.instructorImage }} 
+                        style={styles.upcomingInstructorImage}
+                      />
+                      <Text style={styles.upcomingInstructorName}>{classItem.instructor}</Text>
+                    </View>
+
+                    <View style={styles.capacitySection}>
+                      <View style={styles.capacityHeader}>
+                        <Text style={styles.capacityText}>{classItem.enrolled}/{classItem.capacity}</Text>
+                      </View>
+                      <View style={styles.capacityProgressBar}>
+                        <View 
+                          style={[styles.capacityProgressFill, { width: `${capacityPercent}%` }]} 
+                        />
+                      </View>
+                    </View>
+
+                    <View style={styles.upcomingClassActions}>
+                      <TouchableOpacity 
+                        style={[styles.upcomingActionButton, styles.switchBtn]}
+                        onPress={() => handleSwitchClass(classItem)}
+                        activeOpacity={0.7}
+                      >
+                        <RefreshCw size={14} color={Colors.primary} />
+                        <Text style={styles.switchBtnText}>החלף</Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity 
+                        style={[styles.upcomingActionButton, styles.cancelBtn]}
+                        onPress={() => handleCancelClass(classItem)}
+                        activeOpacity={0.7}
+                      >
+                        <X size={14} color={Colors.primary} />
+                        <Text style={styles.cancelBtnText}>בטל</Text>
+                      </TouchableOpacity>
+                    </View>
                   </View>
-                  <Image 
-                    source={{ uri: classItem.instructorImage }} 
-                    style={styles.instructorImage}
-                  />
-                </View>
-                <View style={styles.classFooter}>
-                  <Text style={styles.instructorName}>{classItem.instructor}</Text>
-                  <View style={styles.classLocationBadge}>
-                    <Text style={styles.classLocationText}>{classItem.location}</Text>
-                  </View>
-                </View>
-              </TouchableOpacity>
-            ))}
+                );
+              })}
+            </ScrollView>
           </View>
         )}
 
@@ -919,5 +984,132 @@ const styles = StyleSheet.create({
   },
   challengeProgressText: {
     color: '#ffffff80',
+  },
+  upcomingClassesScroll: {
+    gap: 12,
+    paddingRight: 4,
+  },
+  upcomingClassCard: {
+    width: width * 0.75,
+    backgroundColor: Colors.card,
+    borderRadius: 16,
+    padding: 16,
+    borderWidth: 1.5,
+    borderColor: '#333333',
+    shadowColor: Colors.shadow,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 12,
+    elevation: 3,
+  },
+  upcomingClassHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  upcomingClassTitle: {
+    fontSize: 18,
+    fontWeight: '700' as const,
+    color: Colors.text,
+    textAlign: 'right',
+    writingDirection: 'rtl' as const,
+    flex: 1,
+    marginRight: 8,
+  },
+  timeCard: {
+    backgroundColor: '#171717',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  timeText: {
+    fontSize: 14,
+    fontWeight: '700' as const,
+    color: Colors.background,
+    writingDirection: 'rtl' as const,
+  },
+  upcomingClassInstructor: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 16,
+    justifyContent: 'flex-end',
+  },
+  upcomingInstructorImage: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+  },
+  upcomingInstructorName: {
+    fontSize: 13,
+    fontWeight: '600' as const,
+    color: Colors.textSecondary,
+    writingDirection: 'rtl' as const,
+  },
+  capacitySection: {
+    marginBottom: 16,
+  },
+  capacityHeader: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  capacityText: {
+    fontSize: 13,
+    fontWeight: '700' as const,
+    color: Colors.text,
+    writingDirection: 'rtl' as const,
+  },
+  capacityProgressBar: {
+    width: '100%',
+    height: 8,
+    backgroundColor: Colors.border,
+    borderRadius: 4,
+    overflow: 'hidden',
+  },
+  capacityProgressFill: {
+    height: '100%',
+    backgroundColor: Colors.primary,
+    borderRadius: 4,
+  },
+  upcomingClassActions: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  upcomingActionButton: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+    borderWidth: 1.5,
+  },
+  switchBtn: {
+    backgroundColor: Colors.card,
+    borderColor: Colors.primary,
+  },
+  switchBtnText: {
+    fontSize: 14,
+    fontWeight: '700' as const,
+    color: Colors.primary,
+    writingDirection: 'rtl' as const,
+  },
+  cancelBtn: {
+    backgroundColor: Colors.card,
+    borderColor: Colors.primary,
+  },
+  cancelBtnText: {
+    fontSize: 14,
+    fontWeight: '700' as const,
+    color: Colors.primary,
+    writingDirection: 'rtl' as const,
   },
 });

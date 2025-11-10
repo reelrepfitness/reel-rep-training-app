@@ -20,6 +20,8 @@ export interface User {
     totalMinutes: number;
     currentStreak: number;
   };
+  lateCancellations?: number;
+  blockEndDate?: string;
 }
 
 export interface UserSubscription {
