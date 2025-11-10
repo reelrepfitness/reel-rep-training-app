@@ -103,7 +103,7 @@ export function BottomSheet({
             <View style={styles.header}>
               <Text style={styles.title}>{title}</Text>
               <Pressable onPress={onClose} style={styles.closeButton}>
-                <X size={24} color="#000" />
+                <X size={24} color="#fff" />
               </Pressable>
             </View>
           )}
@@ -134,7 +134,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   bottomSheetContainer: {
-    backgroundColor: '#fff',
+    backgroundColor: '#171717',
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     paddingTop: 12,
@@ -151,7 +151,7 @@ const styles = StyleSheet.create({
   handle: {
     width: 40,
     height: 4,
-    backgroundColor: '#E5E7EB',
+    backgroundColor: '#404040',
     borderRadius: 2,
     alignSelf: 'center',
     marginBottom: 16,
@@ -165,7 +165,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#000',
+    color: '#fff',
   },
   closeButton: {
     padding: 4,

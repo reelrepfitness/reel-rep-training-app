@@ -1,4 +1,5 @@
 import { View, Text, StyleSheet, TouchableOpacity, I18nManager, ScrollView, ActivityIndicator, Alert, Image } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { Mail, Lock, ArrowRight } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -91,21 +92,23 @@ export default function AuthScreen() {
   const isLoading = signInWithPassword.isPending || signInWithOTP.isPending || verifyOTP.isPending || resetPassword.isPending;
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
-      <View style={styles.header}>
-        <View style={styles.logoContainer}>
-          <Image 
-            source={{ uri: 'https://res.cloudinary.com/diwe4xzro/image/upload/v1762770356/wwefwefgw_j7wn0i.png' }}
-            style={styles.logo}
-            resizeMode="contain"
-          />
+    <View style={styles.container}>
+      <LinearGradient
+        colors={['#da4477', '#ff6b9d', '#da4477']}
+        style={[styles.gradient, { paddingTop: insets.top, paddingBottom: insets.bottom }]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+      >
+        <View style={styles.header}>
+          <View style={styles.logoContainer}>
+            <Image 
+              source={{ uri: 'https://res.cloudinary.com/diwe4xzro/image/upload/v1762770356/wwefwefgw_j7wn0i.png' }}
+              style={styles.logo}
+              resizeMode="contain"
+            />
+          </View>
         </View>
-        <Image 
-          source={{ uri: 'https://res.cloudinary.com/diwe4xzro/image/upload/v1762770819/4_jfele4.png' }}
-          style={styles.brandLogo}
-          resizeMode="contain"
-        />
-      </View>
+      </LinearGradient>
 
       <BottomSheet
         isVisible={isVisible}
@@ -303,7 +306,10 @@ export default function AuthScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#ffffff',
+    backgroundColor: '#da4477',
+  },
+  gradient: {
+    flex: 1,
   },
   header: {
     flex: 1,
@@ -312,20 +318,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
   },
   logoContainer: {
-    width: 100,
-    height: 100,
+    width: 140,
+    height: 140,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 24,
   },
   logo: {
     width: '100%',
     height: '100%',
-  },
-  brandLogo: {
-    width: 200,
-    height: 60,
-    marginTop: 8,
   },
   formContainer: {
     flex: 1,
