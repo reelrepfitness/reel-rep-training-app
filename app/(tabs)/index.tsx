@@ -135,7 +135,7 @@ export default function HomeScreen() {
       c.id !== classItem.id && 
       c.date === classItem.date && 
       c.enrolled < c.capacity &&
-      c.requiredSubscription.includes(user?.subscription?.type || 'basic')
+      (user?.subscription?.type ? c.requiredSubscription.includes(user.subscription.type) : false)
     );
 
     if (availableClasses.length === 0) {
