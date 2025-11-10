@@ -28,12 +28,12 @@ export function Input({
       <View style={[styles.inputContainer, error && styles.inputContainerError]}>
         {Icon && (
           <View style={styles.iconContainer}>
-            <Icon size={20} color={error ? Colors.danger : Colors.textSecondary} />
+            <Icon size={20} color={error ? '#ff6b6b' : '#888'} />
           </View>
         )}
         <TextInput
           style={[styles.input, Icon && styles.inputWithIcon, style]}
-          placeholderTextColor={Colors.textSecondary}
+          placeholderTextColor="#888"
           {...props}
         />
       </View>
@@ -49,17 +49,17 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 14,
     fontWeight: '600' as const,
-    color: Colors.text,
+    color: Colors.light,
     textAlign: 'right',
     writingDirection: 'rtl' as const,
   },
   inputContainer: {
     flexDirection: 'row-reverse' as const,
     alignItems: 'center',
-    backgroundColor: Colors.surface,
+    backgroundColor: '#2a2a2a',
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#171717',
+    borderColor: '#404040',
   },
   inputContainerError: {
     borderColor: Colors.danger,
@@ -70,7 +70,7 @@ const styles = StyleSheet.create({
   input: {
     flex: 1,
     fontSize: 16,
-    color: Colors.text,
+    color: Colors.light,
     paddingVertical: 16,
     paddingHorizontal: 16,
     textAlign: 'right',
@@ -80,9 +80,10 @@ const styles = StyleSheet.create({
     paddingRight: 0,
   },
   error: {
-    fontSize: 12,
-    color: Colors.danger,
+    fontSize: 13,
+    color: '#ff6b6b',
     textAlign: 'right',
     writingDirection: 'rtl' as const,
+    fontWeight: '500' as const,
   },
 });
