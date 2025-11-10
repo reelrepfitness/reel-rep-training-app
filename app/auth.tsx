@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, TouchableOpacity, I18nManager, ScrollView, ActivityIndicator, Alert, Image } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, I18nManager, ScrollView, ActivityIndicator, Alert, Image, Animated } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { Mail, Lock, ArrowRight } from 'lucide-react-native';
@@ -8,7 +8,7 @@ import { useEffect, useState } from 'react';
 import Colors from '@/constants/colors';
 import { hebrew } from '@/constants/hebrew';
 import { Input } from '@/components/ui/input';
-import { BottomSheet, useBottomSheet } from '@/components/ui/bottom-sheet';
+
 
 I18nManager.allowRTL(true);
 I18nManager.forceRTL(true);
@@ -19,12 +19,13 @@ export default function AuthScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { isAuthenticated, signInWithPassword, signInWithOTP, verifyOTP, resetPassword } = useAuth();
-  const { isVisible, open, close } = useBottomSheet();
   
   const [mode, setMode] = useState<AuthMode>('signin');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [otp, setOtp] = useState('');
+  const [showCard, setShowCard] = useState(false);
+  const fadeAnim = useState(() => new Animated.Value(0))[0];
 
 
 
@@ -33,6 +34,22 @@ export default function AuthScreen() {
       router.replace('/(tabs)');
     }
   }, [isAuthenticated, router]);
+
+  useEffect(() => {
+    if (showCard) {
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 300,
+        useNativeDriver: true,
+      }).start();
+    } else {
+      Animated.timing(fadeAnim, {
+        toValue: 0,
+        duration: 200,
+        useNativeDriver: true,
+      }).start();
+    }
+  }, [showCard, fadeAnim]);
 
   const emailError = email && !email.includes('@') ? 'נא להזין כתובת אימייל תקינה' : undefined;
   const passwordError = password && password.length < 6 ? 'הסיסמה חייבת להכיל לפחות 6 תווים' : undefined;
@@ -106,7 +123,7 @@ export default function AuthScreen() {
           </View>
           <TouchableOpacity
             style={styles.loginButton}
-            onPress={open}
+            onPress={() => setShowCard(true)}
             activeOpacity={0.9}
           >
             <Text style={styles.loginButtonText}>כניסה</Text>
@@ -114,18 +131,37 @@ export default function AuthScreen() {
         </View>
       </LinearGradient>
 
-      <BottomSheet
-        isVisible={isVisible}
-        onClose={close}
-        snapPoints={[0.7]}
-        enableBackdropDismiss={false}
-      >
-        <ScrollView 
-          style={styles.formContainer}
-          contentContainerStyle={styles.formContent}
-          keyboardShouldPersistTaps="handled"
-          showsVerticalScrollIndicator={false}
+      {showCard && (
+        <Animated.View 
+          style={[styles.cardOverlay, { opacity: fadeAnim }]}
         >
+          <TouchableOpacity 
+            style={styles.backdrop}
+            activeOpacity={1}
+            onPress={() => setShowCard(false)}
+          />
+          <Animated.View 
+            style={[
+              styles.card,
+              {
+                opacity: fadeAnim,
+                transform: [
+                  {
+                    scale: fadeAnim.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: [0.9, 1],
+                    }),
+                  },
+                ],
+              },
+            ]}
+          >
+            <ScrollView 
+              style={styles.formContainer}
+              contentContainerStyle={styles.formContent}
+              keyboardShouldPersistTaps="handled"
+              showsVerticalScrollIndicator={false}
+            >
           {mode === 'signin' && (
             <>
               <Input
@@ -301,8 +337,10 @@ export default function AuthScreen() {
               </TouchableOpacity>
             </>
           )}
-        </ScrollView>
-      </BottomSheet>
+            </ScrollView>
+          </Animated.View>
+        </Animated.View>
+      )}
     </View>
   );
 }
@@ -438,5 +476,28 @@ const styles = StyleSheet.create({
     color: Colors.textSecondary,
     fontWeight: '600' as const,
     writingDirection: 'rtl' as const,
+  },
+  cardOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 1000,
+  },
+  backdrop: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  card: {
+    backgroundColor: Colors.background,
+    borderRadius: 24,
+    padding: 24,
+    width: '90%',
+    maxWidth: 400,
+    maxHeight: '80%',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.3,
+    shadowRadius: 20,
+    elevation: 10,
   },
 });
