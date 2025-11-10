@@ -1,6 +1,6 @@
 import { StyleSheet, Text, View, ScrollView, TouchableOpacity, Alert } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Clock, Users, MapPin, Lock, ClockAlert, Calendar } from 'lucide-react-native';
+import { Lock, ClockAlert, Calendar } from 'lucide-react-native';
 import { useAuth } from '@/contexts/AuthContext';
 import { useClasses } from '@/contexts/ClassesContext';
 import Colors from '@/constants/colors';
@@ -426,27 +426,13 @@ function ClassCard({
                 </View>
               )}
 
-              {!isLocked && (
-                <View style={styles.classDetails}>
-                  <View style={styles.detailItem}>
-                    <Clock size={16} color={Colors.textSecondary} />
-                    <Text style={styles.detailText}>{classItem.time} • {classItem.duration} {hebrew.classes.durationMinutes}</Text>
-                  </View>
-                  <View style={styles.detailItem}>
-                    <MapPin size={16} color={Colors.textSecondary} />
-                    <Text style={styles.detailText}>{classItem.location}</Text>
-                  </View>
-                  <View style={styles.detailItem}>
-                    <Users size={16} color={Colors.textSecondary} />
-                    <Text style={styles.detailText}>
-                      {classItem.enrolled}/{classItem.capacity} {hebrew.classes.spots}
-                    </Text>
-                  </View>
-                </View>
-              )}
+
 
               {!isLocked && (
                 <View style={styles.progressContainer}>
+                  <Text style={styles.capacityText}>
+                    {classItem.enrolled}/{classItem.capacity}
+                  </Text>
                   <View style={styles.progressBarBg}>
                     <View 
                       style={[
@@ -458,9 +444,6 @@ function ClassCard({
                       ]} 
                     />
                   </View>
-                  <Text style={styles.progressText}>
-                    {classItem.capacity - classItem.enrolled} {hebrew.classes.spotsLeft}
-                  </Text>
                 </View>
               )}
 
@@ -716,6 +699,15 @@ const styles = StyleSheet.create({
   progressContainer: {
     marginBottom: 16,
     gap: 8,
+    position: 'relative' as const,
+  },
+  capacityText: {
+    fontSize: 12,
+    fontWeight: '700' as const,
+    color: Colors.text,
+    position: 'absolute' as const,
+    right: 0,
+    top: -18,
   },
   progressBarBg: {
     height: 8,
