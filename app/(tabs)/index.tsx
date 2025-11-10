@@ -1,5 +1,6 @@
 import { StyleSheet, Text, View, ScrollView, TouchableOpacity, Dimensions, Image, Animated, Alert } from "react-native";
-import { Flame, Calendar, Dumbbell, Target, TrendingUp, Clock, X, RefreshCw } from 'lucide-react-native';
+import { Flame, Calendar, Target, TrendingUp, Clock, X, RefreshCw } from 'lucide-react-native';
+import WorkoutIcon from '@/components/WorkoutIcon';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '@/contexts/AuthContext';
@@ -39,6 +40,7 @@ export default function HomeScreen() {
   }, []);
   
   const weekStats = getWeekStats();
+  const weeklyGoal = 4;
   const upcomingClasses = getUpcomingClasses().slice(0, 2);
   const myBookedClasses = getMyClasses();
 
@@ -188,13 +190,9 @@ export default function HomeScreen() {
           <View style={styles.statsRow}>
             <View style={styles.statItem}>
               <View style={[styles.statIconContainer, { backgroundColor: Colors.primary + '15' }]}>
-                <Image
-                  source={{ uri: 'https://pub-e001eb4506b145aa938b5d3badbff6a5.r2.dev/attachments/7msw6c3bu6tvqyqgu2du2' }}
-                  style={{ width: 24, height: 24 }}
-                  resizeMode="contain"
-                />
+                <WorkoutIcon size={48} progress={weekStats.workouts} weeklyGoal={weeklyGoal} />
               </View>
-              <Text style={styles.statValue}>{weekStats.workouts}</Text>
+              <Text style={styles.statValue}>{weekStats.workouts}/{weeklyGoal}</Text>
               <Text style={styles.statLabel}>{hebrew.home.workouts}</Text>
             </View>
             <View style={styles.statDivider} />
@@ -290,11 +288,7 @@ export default function HomeScreen() {
             >
               <View style={styles.quickActionContent}>
                 <View style={styles.quickActionHeader}>
-                  <Image
-                    source={{ uri: 'https://pub-e001eb4506b145aa938b5d3badbff6a5.r2.dev/attachments/7msw6c3bu6tvqyqgu2du2' }}
-                    style={{ width: 28, height: 28 }}
-                    resizeMode="contain"
-                  />
+                  <WorkoutIcon size={32} progress={weekStats.workouts} weeklyGoal={weeklyGoal} />
                 </View>
                 <Text style={styles.quickActionTitle}>רשום אימון</Text>
                 <Text style={styles.quickActionSubtitle}>תיעוד מהיר של האימון</Text>
