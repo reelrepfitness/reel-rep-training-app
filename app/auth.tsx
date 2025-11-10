@@ -1,6 +1,5 @@
 import { View, Text, StyleSheet, TouchableOpacity, I18nManager, ScrollView, ActivityIndicator, Alert, Image } from 'react-native';
 import { useRouter } from 'expo-router';
-import { LinearGradient } from 'expo-linear-gradient';
 import { Mail, Lock, ArrowRight } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '@/contexts/AuthContext';
@@ -8,6 +7,7 @@ import { useEffect, useState } from 'react';
 import Colors from '@/constants/colors';
 import { hebrew } from '@/constants/hebrew';
 import { Input } from '@/components/ui/input';
+import { BottomSheet, useBottomSheet } from '@/components/ui/bottom-sheet';
 
 I18nManager.allowRTL(true);
 I18nManager.forceRTL(true);
@@ -18,11 +18,17 @@ export default function AuthScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { isAuthenticated, signInWithPassword, signInWithOTP, verifyOTP, resetPassword } = useAuth();
+  const { isVisible, open, close } = useBottomSheet();
   
   const [mode, setMode] = useState<AuthMode>('signin');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [otp, setOtp] = useState('');
+
+  useEffect(() => {
+    const timer = setTimeout(() => open(), 100);
+    return () => clearTimeout(timer);
+  }, [open]);
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -86,27 +92,33 @@ export default function AuthScreen() {
 
   return (
     <View style={[styles.container, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
-      
-      <ScrollView 
-        contentContainerStyle={styles.scrollContent}
-        keyboardShouldPersistTaps="handled"
-      >
-        <View style={styles.header}>
-          <View style={styles.logoContainer}>
-            <Image 
-              source={{ uri: 'https://res.cloudinary.com/diwe4xzro/image/upload/v1762770356/wwefwefgw_j7wn0i.png' }}
-              style={styles.logo}
-              resizeMode="contain"
-            />
-          </View>
+      <View style={styles.header}>
+        <View style={styles.logoContainer}>
           <Image 
-            source={{ uri: 'https://res.cloudinary.com/diwe4xzro/image/upload/v1762770819/4_jfele4.png' }}
-            style={styles.brandLogo}
+            source={{ uri: 'https://res.cloudinary.com/diwe4xzro/image/upload/v1762770356/wwefwefgw_j7wn0i.png' }}
+            style={styles.logo}
             resizeMode="contain"
           />
         </View>
+        <Image 
+          source={{ uri: 'https://res.cloudinary.com/diwe4xzro/image/upload/v1762770819/4_jfele4.png' }}
+          style={styles.brandLogo}
+          resizeMode="contain"
+        />
+      </View>
 
-        <View style={styles.formContainer}>
+      <BottomSheet
+        isVisible={isVisible}
+        onClose={close}
+        snapPoints={[0.7]}
+        enableBackdropDismiss={false}
+      >
+        <ScrollView 
+          style={styles.formContainer}
+          contentContainerStyle={styles.formContent}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
           {mode === 'signin' && (
             <>
               <Input
@@ -282,8 +294,8 @@ export default function AuthScreen() {
               </TouchableOpacity>
             </>
           )}
-        </View>
-      </ScrollView>
+        </ScrollView>
+      </BottomSheet>
     </View>
   );
 }
@@ -293,15 +305,11 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#ffffff',
   },
-  scrollContent: {
-    flexGrow: 1,
-    paddingHorizontal: 24,
-    paddingVertical: 40,
-    justifyContent: 'center',
-  },
   header: {
+    flex: 1,
     alignItems: 'center',
-    marginBottom: 48,
+    justifyContent: 'center',
+    paddingHorizontal: 24,
   },
   logoContainer: {
     width: 100,
@@ -314,30 +322,17 @@ const styles = StyleSheet.create({
     width: '100%',
     height: '100%',
   },
-  title: {
-    fontSize: 36,
-    fontWeight: '900' as const,
-    color: '#171717',
-    textAlign: 'center',
-    marginBottom: 8,
-    writingDirection: 'rtl' as const,
-  },
   brandLogo: {
     width: 200,
     height: 60,
-    marginBottom: 8,
+    marginTop: 8,
   },
   formContainer: {
-    backgroundColor: Colors.background,
-    borderRadius: 24,
-    padding: 32,
+    flex: 1,
+  },
+  formContent: {
     gap: 16,
-    shadowColor: Colors.shadowDark,
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.3,
-    shadowRadius: 16,
-    elevation: 8,
-    minHeight: 480,
+    paddingBottom: 24,
   },
   modeTitle: {
     fontSize: 24,
