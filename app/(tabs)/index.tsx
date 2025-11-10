@@ -20,7 +20,7 @@ export default function HomeScreen() {
   const { user, isAdmin, updateUser } = useAuth();
   const { getWeekStats } = useWorkouts();
   const { getUpcomingClasses, getMyClasses, cancelBooking, getClassBooking, classes } = useClasses();
-  const { activeAchievements, activeChallenge, challengeAchievements, hasActiveChallenge, acceptChallenge, calculateProgress, getClassAttendanceCount = () => 0 } = useAchievements();
+  const { activeAchievements, activeChallenge, challengeAchievements, hasActiveChallenge, acceptChallenge, calculateProgress } = useAchievements();
   
   const lateCancellations = user?.lateCancellations || 0;
   const blockEndDate = user?.blockEndDate || null;
