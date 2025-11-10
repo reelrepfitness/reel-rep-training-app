@@ -233,6 +233,9 @@ export default function HomeScreen() {
           >
             {mockUserAchievements.slice(0, 4).map((userAchievement) => (
               <View key={userAchievement.id} style={styles.achievementCard}>
+                <Text style={styles.achievementCategory} numberOfLines={1}>
+                  {userAchievement.achievement.description}
+                </Text>
                 <View style={styles.achievementIconContainer}>
                   <Image 
                     source={{ uri: userAchievement.achievement.icon }} 
@@ -564,41 +567,52 @@ const styles = StyleSheet.create({
     paddingRight: 4,
   },
   achievementCard: {
-    width: width * 0.35,
+    width: width * 0.42,
     backgroundColor: Colors.card,
     borderRadius: 16,
-    padding: 16,
+    padding: 14,
     shadowColor: Colors.shadow,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.06,
     shadowRadius: 8,
     elevation: 2,
   },
+  achievementCategory: {
+    fontSize: 15,
+    fontWeight: '800' as const,
+    color: Colors.text,
+    textAlign: 'center',
+    marginBottom: 12,
+    textTransform: 'uppercase' as const,
+    letterSpacing: 0.5,
+  },
   achievementIconContainer: {
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 12,
+    marginBottom: 10,
   },
   achievementIcon: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
+    width: 64,
+    height: 64,
+    borderRadius: 32,
   },
   achievementTitle: {
-    fontSize: 13,
+    fontSize: 12,
     fontWeight: '700' as const,
     color: Colors.text,
     textAlign: 'center',
     marginBottom: 4,
     writingDirection: 'rtl' as const,
+    minHeight: 32,
   },
   achievementSubtitle: {
-    fontSize: 11,
+    fontSize: 10,
     fontWeight: '500' as const,
     color: Colors.textSecondary,
     textAlign: 'center',
-    marginBottom: 12,
+    marginBottom: 10,
     writingDirection: 'rtl' as const,
+    minHeight: 26,
   },
   achievementProgress: {
     width: '100%',
