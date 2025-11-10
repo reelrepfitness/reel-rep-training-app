@@ -63,6 +63,7 @@ export const hebrew = {
     cancel: 'בטל',
     booked: 'מוזמן',
     full: 'מלא',
+    waitlist: 'הרשמה להמתנה',
     spots: 'מקומות',
     spotsLeft: 'מקומות פנויים',
     instructor: 'מדריך',

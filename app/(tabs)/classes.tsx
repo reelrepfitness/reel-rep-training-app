@@ -1,6 +1,6 @@
 import { StyleSheet, Text, View, ScrollView, TouchableOpacity, Alert } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Clock, Users, MapPin, Lock } from 'lucide-react-native';
+import { Clock, Users, MapPin, Lock, ClockAlert } from 'lucide-react-native';
 import { useAuth } from '@/contexts/AuthContext';
 import { useClasses } from '@/contexts/ClassesContext';
 import Colors from '@/constants/colors';
@@ -132,6 +132,17 @@ export default function ClassesScreen() {
     }
   };
 
+  const getCapacityColor = (percentage: number) => {
+    if (percentage >= 90) return '#EF4444';
+    if (percentage >= 70) return '#F97316';
+    if (percentage >= 50) return '#F59E0B';
+    return '#10B981';
+  };
+
+  const getCapacityPercentage = (enrolled: number, capacity: number) => {
+    return Math.round((enrolled / capacity) * 100);
+  };
+
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
       <View style={styles.header}>
@@ -211,22 +222,54 @@ export default function ClassesScreen() {
               )}
 
               {!isLocked && (
+                <View style={styles.progressContainer}>
+                  <View style={styles.progressBarBg}>
+                    <View 
+                      style={[
+                        styles.progressBarFill,
+                        { 
+                          width: `${getCapacityPercentage(classItem.enrolled, classItem.capacity)}%`,
+                          backgroundColor: getCapacityColor(getCapacityPercentage(classItem.enrolled, classItem.capacity))
+                        }
+                      ]} 
+                    />
+                  </View>
+                  <Text style={styles.progressText}>
+                    {classItem.capacity - classItem.enrolled} {hebrew.classes.spotsLeft}
+                  </Text>
+                </View>
+              )}
+
+              {!isLocked && (
                 <TouchableOpacity
                   style={[
                     styles.bookButton,
-                    (booked || isFull) && styles.bookButtonDisabled,
+                    isFull && styles.bookButtonWaitlist,
                     booked && styles.bookButtonBooked,
+                    booked && styles.bookButtonDisabled,
                   ]}
                   onPress={() => handleBookClass(classItem.id)}
-                  disabled={booked || isFull}
+                  disabled={booked}
                   activeOpacity={0.7}
                 >
-                  <Text style={[
-                    styles.bookButtonText,
-                    (booked || isFull) && styles.bookButtonTextDisabled,
-                  ]}>
-                    {booked ? hebrew.classes.booked : isFull ? hebrew.classes.full : hebrew.classes.book}
-                  </Text>
+                  {isFull ? (
+                    <View style={styles.waitlistButtonContent}>
+                      <ClockAlert size={18} color={Colors.background} />
+                      <Text style={styles.bookButtonText}>
+                        {hebrew.classes.waitlist}
+                      </Text>
+                      <View style={styles.waitlistBadge}>
+                        <Text style={styles.waitlistBadgeText}>0</Text>
+                      </View>
+                    </View>
+                  ) : (
+                    <Text style={[
+                      styles.bookButtonText,
+                      booked && styles.bookButtonTextDisabled,
+                    ]}>
+                      {booked ? hebrew.classes.booked : hebrew.classes.book}
+                    </Text>
+                  )}
                 </TouchableOpacity>
               )}
             </View>
@@ -404,6 +447,48 @@ const styles = StyleSheet.create({
   },
   bookButtonBooked: {
     backgroundColor: Colors.success,
+  },
+  bookButtonWaitlist: {
+    backgroundColor: Colors.accent,
+  },
+  waitlistButtonContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  waitlistBadge: {
+    backgroundColor: Colors.background + '40',
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 10,
+    minWidth: 24,
+    alignItems: 'center',
+  },
+  waitlistBadgeText: {
+    fontSize: 12,
+    fontWeight: '700' as const,
+    color: Colors.background,
+  },
+  progressContainer: {
+    marginBottom: 16,
+    gap: 8,
+  },
+  progressBarBg: {
+    height: 8,
+    backgroundColor: Colors.border,
+    borderRadius: 4,
+    overflow: 'hidden' as const,
+  },
+  progressBarFill: {
+    height: '100%',
+    borderRadius: 4,
+  },
+  progressText: {
+    fontSize: 12,
+    fontWeight: '600' as const,
+    color: Colors.textSecondary,
+    textAlign: 'right',
+    writingDirection: 'rtl' as const,
   },
   bookButtonText: {
     fontSize: 16,
