@@ -367,6 +367,10 @@ function ClassCard({
   getCapacityColor,
   getCapacityPercentage,
 }: ClassCardProps) {
+  const classDate = new Date(classItem.date);
+  const dayNumber = classDate.getDate();
+  const dayOfWeek = DAYS_OF_WEEK[classDate.getDay()];
+  
   return (
     <View style={[styles.classCard, isLocked && styles.classCardLocked]}>
               {isLocked && (
@@ -376,16 +380,16 @@ function ClassCard({
                 </View>
               )}
               
+              <View style={styles.dateCard}>
+                <Text style={styles.dateCardNumber}>{dayNumber}</Text>
+                <Text style={styles.dateCardDay}>{dayOfWeek}</Text>
+              </View>
+              
               <View style={[styles.classHeader, isLocked && styles.classHeaderWithBanner]}>
                 <View style={styles.classInfo}>
                   <Text style={[styles.className, isLocked && styles.textLocked]}>{classItem.title}</Text>
                   <Text style={[styles.instructor, isLocked && styles.textLocked]}>
                     {hebrew.classes.instructor}: {classItem.instructor}
-                  </Text>
-                </View>
-                <View style={[styles.difficultyBadge, { backgroundColor: getDifficultyColor(classItem.difficulty) + '20' }]}>
-                  <Text style={[styles.difficultyText, { color: getDifficultyColor(classItem.difficulty) }]}>
-                    {hebrew.classes[classItem.difficulty as keyof typeof hebrew.classes]}
                   </Text>
                 </View>
               </View>
@@ -573,15 +577,35 @@ const styles = StyleSheet.create({
   textLocked: {
     color: Colors.textSecondary,
   },
-  difficultyBadge: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
+  dateCard: {
+    position: 'absolute' as const,
+    top: 16,
+    right: 16,
+    backgroundColor: Colors.primary,
     borderRadius: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+    minWidth: 50,
+    zIndex: 2,
+    shadowColor: Colors.shadow,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 4,
+    elevation: 3,
   },
-  difficultyText: {
-    fontSize: 12,
-    fontWeight: '700' as const,
+  dateCardNumber: {
+    fontSize: 20,
+    fontWeight: '800' as const,
+    color: Colors.background,
+  },
+  dateCardDay: {
+    fontSize: 11,
+    fontWeight: '600' as const,
+    color: Colors.background,
     writingDirection: 'rtl' as const,
+    marginTop: 2,
   },
   description: {
     fontSize: 14,
@@ -695,23 +719,24 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: Colors.border,
     backgroundColor: Colors.background,
+    maxHeight: 56,
   },
   calendarStrip: {
     paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingVertical: 8,
     gap: 8,
   },
   dayButton: {
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderRadius: 20,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
     backgroundColor: Colors.card,
     borderWidth: 1,
     borderColor: Colors.border,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    minWidth: 80,
+    minWidth: 70,
     justifyContent: 'center',
   },
   dayButtonActive: {
@@ -719,7 +744,7 @@ const styles = StyleSheet.create({
     borderColor: Colors.primary,
   },
   dayButtonText: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '600' as const,
     color: Colors.textSecondary,
     writingDirection: 'rtl' as const,

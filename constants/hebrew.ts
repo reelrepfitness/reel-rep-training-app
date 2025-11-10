@@ -66,7 +66,7 @@ export const hebrew = {
     waitlist: 'הרשמה להמתנה',
     spots: 'מקומות',
     spotsLeft: 'מקומות פנויים',
-    instructor: 'מדריך',
+    instructor: 'מאמן',
     duration: 'משך',
     durationMinutes: 'דקות',
     difficulty: 'רמת קושי',
