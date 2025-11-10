@@ -21,8 +21,8 @@ export function BottomSheet({
   enableBackdropDismiss = true,
 }: BottomSheetProps) {
   const insets = useSafeAreaInsets();
-  const [sheetHeight, setSheetHeight] = React.useState(0);
-  const translateY = React.useRef(new Animated.Value(0)).current;
+  const [mounted, setMounted] = React.useState(false);
+  const translateY = React.useRef(new Animated.Value(1000)).current;
   const panResponder = React.useRef(
     PanResponder.create({
       onStartShouldSetPanResponder: () => true,
@@ -53,23 +53,28 @@ export function BottomSheet({
   ).current;
 
   useEffect(() => {
-    if (isVisible && sheetHeight > 0) {
-      translateY.setValue(sheetHeight);
+    if (isVisible) {
+      setMounted(true);
+      translateY.setValue(1000);
+      setTimeout(() => {
+        Animated.spring(translateY, {
+          toValue: 0,
+          useNativeDriver: true,
+          tension: 65,
+          friction: 11,
+        }).start();
+      }, 50);
+    } else if (mounted) {
       Animated.spring(translateY, {
-        toValue: 0,
+        toValue: 1000,
         useNativeDriver: true,
         tension: 65,
         friction: 11,
-      }).start();
-    } else if (!isVisible && sheetHeight > 0) {
-      Animated.spring(translateY, {
-        toValue: sheetHeight,
-        useNativeDriver: true,
-        tension: 65,
-        friction: 11,
-      }).start();
+      }).start(() => {
+        setMounted(false);
+      });
     }
-  }, [isVisible, translateY, sheetHeight]);
+  }, [isVisible, translateY, mounted]);
 
   const handleBackdropPress = useCallback(() => {
     if (enableBackdropDismiss) {
@@ -90,13 +95,6 @@ export function BottomSheet({
         
         <Animated.View
           {...(Platform.OS !== 'web' ? panResponder.panHandlers : {})}
-          onLayout={(event) => {
-            if (sheetHeight === 0) {
-              const height = event.nativeEvent.layout.height;
-              setSheetHeight(height);
-              translateY.setValue(height);
-            }
-          }}
           style={[
             styles.bottomSheetContainer,
             {
