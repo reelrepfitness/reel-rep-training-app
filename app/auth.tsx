@@ -288,7 +288,7 @@ export default function AuthScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#171717',
+    backgroundColor: '#ffffff',
   },
   scrollContent: {
     flexGrow: 1,
@@ -303,12 +303,9 @@ const styles = StyleSheet.create({
   logoContainer: {
     width: 100,
     height: 100,
-    borderRadius: 50,
-    backgroundColor: '#ffffff',
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 24,
-    padding: 12,
   },
   logo: {
     width: '100%',
@@ -317,7 +314,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 36,
     fontWeight: '900' as const,
-    color: '#ffffff',
+    color: '#171717',
     textAlign: 'center',
     marginBottom: 8,
     writingDirection: 'rtl' as const,
@@ -325,9 +322,10 @@ const styles = StyleSheet.create({
   tagline: {
     fontSize: 16,
     fontWeight: '600' as const,
-    color: '#ffffffE0',
+    color: '#171717',
     textAlign: 'center',
     writingDirection: 'rtl' as const,
+    opacity: 0.7,
   },
   formContainer: {
     backgroundColor: Colors.background,

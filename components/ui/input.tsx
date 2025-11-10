@@ -59,7 +59,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.surface,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: '#171717',
   },
   inputContainerError: {
     borderColor: Colors.danger,
