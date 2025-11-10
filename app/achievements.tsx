@@ -65,7 +65,7 @@ export default function AchievementsScreen() {
           isChallenge && styles.challengeText,
           completed && styles.completedText,
         ]} numberOfLines={1}>
-          {userAchievement.achievement.description}
+          {userAchievement.achievement.catagory || 'הישג'}
         </Text>
         <View style={styles.achievementIconContainer}>
           <View style={[
@@ -137,7 +137,7 @@ export default function AchievementsScreen() {
           </View>
           <View style={styles.availableInfo}>
             <Text style={styles.availableCategory} numberOfLines={1}>
-              {achievement.description}
+              {achievement.catagory || 'הישג'}
             </Text>
             <Text style={styles.availableTitle} numberOfLines={2}>
               {achievement.name_hebrew}
