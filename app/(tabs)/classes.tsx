@@ -206,6 +206,7 @@ export default function ClassesScreen() {
           date: date.toISOString(),
           dayNumber: date.getDate(),
           isAvailable,
+          isFirstBlocked: !isAvailable && (days.length === 0 || days[days.length - 1].isAvailable),
         });
       }
     }
@@ -216,6 +217,8 @@ export default function ClassesScreen() {
   };
 
   const calendarDays = generateCalendarDays();
+  const blockedDays = calendarDays.filter(d => !d.isAvailable);
+  const blockedDaysCount = blockedDays.length;
 
   const availableDays = Object.keys(groupedClasses)
     .filter(key => key !== 'nextWeek')
@@ -263,9 +266,20 @@ export default function ClassesScreen() {
           directionalLockEnabled
           inverted={Platform.OS !== 'web'}
         >
+          {blockedDaysCount > 0 && countdown && (
+            <View style={[styles.bigCountdownCard, { width: 90 + (blockedDaysCount - 1) * 30 }]}>
+              <Lock size={28} color={Colors.accent} />
+              <Text style={styles.bigCountdownTitle}>{hebrew.classes.registrationOpensIn}</Text>
+              <Text style={styles.bigCountdownText}>{countdown}</Text>
+            </View>
+          )}
           {calendarDays.map((day, index) => {
             const bookedClass = getUserClassForDay(day.dayOfWeek);
             const isToday = day.dayOfWeek === todayDayOfWeek && new Date(day.date).toDateString() === today.toDateString();
+            
+            if (!day.isAvailable) {
+              return null;
+            }
             
             return (
               <TouchableOpacity
@@ -273,39 +287,23 @@ export default function ClassesScreen() {
                 style={[
                   styles.calendarDayCard,
                   selectedDay === day.dayOfWeek && styles.calendarDayCardActive,
-                  !day.isAvailable && styles.calendarDayCardDisabled,
                   isToday && styles.calendarDayCardToday,
                 ]}
                 onPress={() => {
-                  if (day.isAvailable) {
-                    setSelectedDay(selectedDay === day.dayOfWeek ? null : day.dayOfWeek);
-                  }
+                  setSelectedDay(selectedDay === day.dayOfWeek ? null : day.dayOfWeek);
                 }}
                 activeOpacity={0.7}
-                disabled={!day.isAvailable}
               >
-                {!day.isAvailable && countdown ? (
-                  <View style={styles.countdownOverlay}>
-                    <Lock size={20} color={Colors.accent} />
-                    <Text style={styles.countdownOverlayTitle}>{hebrew.classes.registrationOpensIn}</Text>
-                    <Text style={styles.countdownOverlayText}>{countdown}</Text>
-                  </View>
-                ) : (
-                  <>
-                    <Text style={[
-                      styles.calendarDayNumber,
-                      selectedDay === day.dayOfWeek && styles.calendarDayNumberActive,
-                      !day.isAvailable && styles.calendarDayNumberDisabled,
-                    ]}>{day.dayNumber}</Text>
-                    <Text style={[
-                      styles.calendarDayName,
-                      selectedDay === day.dayOfWeek && styles.calendarDayNameActive,
-                      !day.isAvailable && styles.calendarDayNameDisabled,
-                    ]}>{DAYS_OF_WEEK[day.dayOfWeek]}</Text>
-                    {bookedClass && day.isAvailable && (
-                      <Text style={styles.bookedClassTime}>רשום ל{bookedClass.time}</Text>
-                    )}
-                  </>
+                <Text style={[
+                  styles.calendarDayNumber,
+                  selectedDay === day.dayOfWeek && styles.calendarDayNumberActive,
+                ]}>{day.dayNumber}</Text>
+                <Text style={[
+                  styles.calendarDayName,
+                  selectedDay === day.dayOfWeek && styles.calendarDayNameActive,
+                ]}>{DAYS_OF_WEEK[day.dayOfWeek]}</Text>
+                {bookedClass && (
+                  <Text style={styles.bookedClassTime}>רשום ל{bookedClass.time}</Text>
                 )}
               </TouchableOpacity>
             );
@@ -770,30 +768,27 @@ const styles = StyleSheet.create({
     marginTop: 4,
     textAlign: 'center',
   },
-  countdownOverlay: {
-    position: 'absolute' as const,
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
+  bigCountdownCard: {
     backgroundColor: Colors.accent + '20',
-    borderRadius: 12,
+    borderRadius: 16,
+    padding: 16,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 8,
-    gap: 4,
-    minWidth: 120,
+    gap: 8,
+    borderWidth: 2,
+    borderColor: Colors.accent + '40',
+    marginRight: 8,
   },
-  countdownOverlayTitle: {
-    fontSize: 9,
-    fontWeight: '600' as const,
+  bigCountdownTitle: {
+    fontSize: 11,
+    fontWeight: '700' as const,
     color: Colors.accent,
     writingDirection: 'rtl' as const,
     textAlign: 'center',
   },
-  countdownOverlayText: {
-    fontSize: 11,
-    fontWeight: '700' as const,
+  bigCountdownText: {
+    fontSize: 13,
+    fontWeight: '800' as const,
     color: Colors.accent,
     writingDirection: 'rtl' as const,
     textAlign: 'center',
