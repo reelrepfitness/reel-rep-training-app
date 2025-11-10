@@ -87,11 +87,22 @@ export interface ClassBooking {
 
 export interface Achievement {
   id: string;
-  title: string;
-  description: string;
+  name: string;
+  name_hebrew: string;
   icon: string;
+  description: string;
+  description_hebrew: string;
+  task_requirement: number;
+  points: number;
+  task_type: 'total_weight' | 'challenge' | 'disapline' | 'classes_attended';
+  created_at: string;
+  is_active: boolean;
+}
+
+export interface UserAchievement {
+  id: string;
+  achievement: Achievement;
   progress: number;
-  target: number;
   completed: boolean;
   dateEarned?: string;
 }

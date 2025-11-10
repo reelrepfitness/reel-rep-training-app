@@ -1,5 +1,5 @@
 import { StyleSheet, Text, View, ScrollView, TouchableOpacity, Dimensions, Image, Animated } from "react-native";
-import { Flame, Trophy, Calendar, Dumbbell, Target, TrendingUp, Clock } from 'lucide-react-native';
+import { Flame, Calendar, Dumbbell, Target, TrendingUp, Clock } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '@/contexts/AuthContext';
@@ -7,7 +7,7 @@ import { useWorkouts } from '@/contexts/WorkoutContext';
 import { useClasses } from '@/contexts/ClassesContext';
 import Colors from '@/constants/colors';
 import { hebrew } from '@/constants/hebrew';
-import { mockAchievements } from '@/constants/mockData';
+import { mockUserAchievements } from '@/constants/mockData';
 import { useEffect, useRef } from 'react';
 
 const { width } = Dimensions.get('window');
@@ -231,23 +231,24 @@ export default function HomeScreen() {
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.achievementsScroll}
           >
-            {mockAchievements.slice(0, 4).map((achievement) => (
-              <View key={achievement.id} style={styles.achievementCard}>
-                <View style={[styles.achievementIconContainer, { 
-                  backgroundColor: achievement.completed ? Colors.success + '15' : Colors.border 
-                }]}>
-                  <Trophy size={28} color={achievement.completed ? Colors.success : Colors.textLight} />
-                </View>
-                <Text style={styles.achievementTitle} numberOfLines={2}>{achievement.title}</Text>
+            {mockUserAchievements.slice(0, 4).map((userAchievement) => (
+              <View key={userAchievement.id} style={styles.achievementCard}>
+                <Image 
+                  source={{ uri: userAchievement.achievement.icon }} 
+                  style={styles.achievementIcon}
+                />
+                <Text style={styles.achievementTitle} numberOfLines={2}>
+                  {userAchievement.achievement.name_hebrew}
+                </Text>
                 <View style={styles.achievementProgress}>
                   <View style={styles.progressBarContainer}>
                     <View style={[styles.progressBarFill, { 
-                      width: `${Math.min((achievement.progress / achievement.target) * 100, 100)}%`,
-                      backgroundColor: achievement.completed ? Colors.success : Colors.primary,
+                      width: `${Math.min((userAchievement.progress / userAchievement.achievement.task_requirement) * 100, 100)}%`,
+                      backgroundColor: userAchievement.completed ? Colors.success : Colors.primary,
                     }]} />
                   </View>
                   <Text style={styles.achievementProgressText}>
-                    {achievement.progress}/{achievement.target}
+                    {userAchievement.progress}/{userAchievement.achievement.task_requirement}
                   </Text>
                 </View>
               </View>
@@ -558,12 +559,10 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 2,
   },
-  achievementIconContainer: {
+  achievementIcon: {
     width: 56,
     height: 56,
     borderRadius: 28,
-    alignItems: 'center',
-    justifyContent: 'center',
     marginBottom: 12,
   },
   achievementTitle: {
