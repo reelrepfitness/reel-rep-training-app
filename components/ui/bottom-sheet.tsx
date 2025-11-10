@@ -53,8 +53,13 @@ export function BottomSheet({
   ).current;
 
   useEffect(() => {
-    if (isVisible) {
+    if (isVisible && !mounted) {
       setMounted(true);
+    }
+  }, [isVisible, mounted]);
+
+  useEffect(() => {
+    if (mounted && isVisible) {
       translateY.setValue(1000);
       setTimeout(() => {
         Animated.spring(translateY, {
@@ -64,7 +69,7 @@ export function BottomSheet({
           friction: 11,
         }).start();
       }, 50);
-    } else if (mounted) {
+    } else if (mounted && !isVisible) {
       Animated.spring(translateY, {
         toValue: 1000,
         useNativeDriver: true,
@@ -74,7 +79,7 @@ export function BottomSheet({
         setMounted(false);
       });
     }
-  }, [isVisible, translateY, mounted]);
+  }, [mounted, isVisible, translateY]);
 
   const handleBackdropPress = useCallback(() => {
     if (enableBackdropDismiss) {
@@ -82,9 +87,13 @@ export function BottomSheet({
     }
   }, [enableBackdropDismiss, onClose]);
 
+  if (!mounted && !isVisible) {
+    return null;
+  }
+
   return (
     <Modal
-      visible={isVisible}
+      visible={mounted}
       transparent
       animationType="fade"
       onRequestClose={onClose}
