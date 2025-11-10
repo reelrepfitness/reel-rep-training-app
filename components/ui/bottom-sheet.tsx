@@ -21,7 +21,8 @@ export function BottomSheet({
   enableBackdropDismiss = true,
 }: BottomSheetProps) {
   const insets = useSafeAreaInsets();
-  const translateY = React.useRef(new Animated.Value(1000)).current;
+  const [sheetHeight, setSheetHeight] = React.useState(0);
+  const translateY = React.useRef(new Animated.Value(0)).current;
   const panResponder = React.useRef(
     PanResponder.create({
       onStartShouldSetPanResponder: () => true,
@@ -52,22 +53,23 @@ export function BottomSheet({
   ).current;
 
   useEffect(() => {
-    if (isVisible) {
+    if (isVisible && sheetHeight > 0) {
+      translateY.setValue(sheetHeight);
       Animated.spring(translateY, {
         toValue: 0,
         useNativeDriver: true,
-        tension: 80,
-        friction: 10,
+        tension: 65,
+        friction: 11,
       }).start();
-    } else {
+    } else if (!isVisible && sheetHeight > 0) {
       Animated.spring(translateY, {
-        toValue: 1000,
+        toValue: sheetHeight,
         useNativeDriver: true,
-        tension: 80,
-        friction: 10,
+        tension: 65,
+        friction: 11,
       }).start();
     }
-  }, [isVisible, translateY]);
+  }, [isVisible, translateY, sheetHeight]);
 
   const handleBackdropPress = useCallback(() => {
     if (enableBackdropDismiss) {
@@ -88,6 +90,13 @@ export function BottomSheet({
         
         <Animated.View
           {...(Platform.OS !== 'web' ? panResponder.panHandlers : {})}
+          onLayout={(event) => {
+            if (sheetHeight === 0) {
+              const height = event.nativeEvent.layout.height;
+              setSheetHeight(height);
+              translateY.setValue(height);
+            }
+          }}
           style={[
             styles.bottomSheetContainer,
             {
