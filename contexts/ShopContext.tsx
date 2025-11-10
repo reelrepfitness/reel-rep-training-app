@@ -5,13 +5,16 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import { CartItem, SubscriptionPackage, PaymentMethod } from '@/constants/types';
 import { subscriptionPackages } from '@/constants/mockData';
 import { useAuth } from './AuthContext';
+import { useAchievements } from './AchievementsContext';
 
 const CART_STORAGE_KEY = '@reelrep_cart';
 
 export const [ShopProvider, useShop] = createContextHook(() => {
   const { user } = useAuth();
+  const { totalPlates } = useAchievements();
   const [cart, setCart] = useState<CartItem[]>([]);
   const [packages] = useState<SubscriptionPackage[]>(subscriptionPackages);
+  const [platesToUse, setPlatesToUse] = useState<number>(0);
 
   const cartQuery = useQuery({
     queryKey: ['cart', user?.id],
@@ -90,6 +93,25 @@ export const [ShopProvider, useShop] = createContextHook(() => {
     return cart.reduce((total, item) => total + item.package.price * item.quantity, 0);
   }, [cart]);
 
+  const getDiscountedTotal = useCallback(() => {
+    const total = getTotal();
+    return Math.max(0, total - platesToUse);
+  }, [getTotal, platesToUse]);
+
+  const getMaxPlatesUsable = useCallback(() => {
+    const total = getTotal();
+    return Math.min(totalPlates, total);
+  }, [getTotal, totalPlates]);
+
+  const applyPlates = useCallback((amount: number) => {
+    const maxUsable = getMaxPlatesUsable();
+    setPlatesToUse(Math.min(Math.max(0, amount), maxUsable));
+  }, [getMaxPlatesUsable]);
+
+  const resetPlates = useCallback(() => {
+    setPlatesToUse(0);
+  }, []);
+
   const checkoutMutation = useMutation({
     mutationFn: async (paymentData: {
       paymentMethod: PaymentMethod;
@@ -123,11 +145,17 @@ export const [ShopProvider, useShop] = createContextHook(() => {
     packages,
     isLoading: cartQuery.isLoading,
     isProcessing: checkoutMutation.isPending,
+    totalPlates,
+    platesToUse,
     addToCart,
     removeFromCart,
     updateQuantity,
     clearCart,
     getTotal,
+    getDiscountedTotal,
+    getMaxPlatesUsable,
+    applyPlates,
+    resetPlates,
     checkout,
-  }), [cart, packages, cartQuery.isLoading, checkoutMutation.isPending, addToCart, removeFromCart, updateQuantity, clearCart, getTotal, checkout]);
+  }), [cart, packages, cartQuery.isLoading, checkoutMutation.isPending, totalPlates, platesToUse, addToCart, removeFromCart, updateQuantity, clearCart, getTotal, getDiscountedTotal, getMaxPlatesUsable, applyPlates, resetPlates, checkout]);
 });

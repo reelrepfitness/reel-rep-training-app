@@ -256,6 +256,13 @@ export const [AchievementsProvider, useAchievements] = createContextHook(() => {
     };
   }, [userAchievementsQuery.data, calculateProgress]);
 
+  const getTotalPlates = useCallback((): number => {
+    if (!userAchievementsQuery.data) return 0;
+    return userAchievementsQuery.data
+      .filter(ua => ua.completed)
+      .reduce((total, ua) => total + ua.achievement.points, 0);
+  }, [userAchievementsQuery.data]);
+
   return useMemo(() => ({
     achievements: achievementsQuery.data || [],
     userAchievements: userAchievementsQuery.data || [],
@@ -265,6 +272,7 @@ export const [AchievementsProvider, useAchievements] = createContextHook(() => {
     challengeAchievements: getChallengeAchievements(),
     activeChallenge: getActiveChallenge(),
     hasActiveChallenge: hasActiveChallenge(),
+    totalPlates: getTotalPlates(),
     isLoading: achievementsQuery.isLoading || userAchievementsQuery.isLoading,
     acceptChallenge,
     calculateProgress,
@@ -279,7 +287,8 @@ export const [AchievementsProvider, useAchievements] = createContextHook(() => {
     getChallengeAchievements,
     getActiveChallenge,
     hasActiveChallenge,
+    getTotalPlates,
     acceptChallenge,
     calculateProgress,
-  ]);
+  });
 });

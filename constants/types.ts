@@ -22,6 +22,7 @@ export interface User {
   };
   lateCancellations?: number;
   blockEndDate?: string;
+  plateBalance?: number;
 }
 
 export interface UserSubscription {

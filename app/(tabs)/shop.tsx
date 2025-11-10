@@ -1,13 +1,28 @@
-import { StyleSheet, Text, View, ScrollView, TouchableOpacity, Alert } from 'react-native';
+import { StyleSheet, Text, View, ScrollView, TouchableOpacity, Alert, TextInput, Image } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Check, ShoppingCart } from 'lucide-react-native';
+import { Check, ShoppingCart, Minus, Plus } from 'lucide-react-native';
 import { useShop } from '@/contexts/ShopContext';
 import Colors from '@/constants/colors';
 import { hebrew } from '@/constants/hebrew';
+import { useState } from 'react';
 
 export default function ShopScreen() {
   const insets = useSafeAreaInsets();
-  const { packages, cart, addToCart, removeFromCart, getTotal } = useShop();
+  const { 
+    packages, 
+    cart, 
+    addToCart, 
+    removeFromCart, 
+    getTotal, 
+    totalPlates,
+    platesToUse,
+    getDiscountedTotal,
+    getMaxPlatesUsable,
+    applyPlates,
+    resetPlates
+  } = useShop();
+  const [showPlateInput, setShowPlateInput] = useState<boolean>(false);
+  const [platesInput, setPlatesInput] = useState<string>('');
 
   const handleAddToCart = (pkg: any) => {
     addToCart(pkg);
@@ -99,13 +114,138 @@ export default function ShopScreen() {
         {cart.length > 0 && (
           <View style={styles.cartSummary}>
             <Text style={styles.cartTitle}>{hebrew.shop.cart}</Text>
-            <View style={styles.totalRow}>
-              <Text style={styles.totalLabel}>{hebrew.shop.total}:</Text>
-              <Text style={styles.totalValue}>{getTotal()} ₪</Text>
+            
+            <View style={styles.platesBalanceCard}>
+              <Image 
+                source={{ uri: 'https://rork.app/pa/zydd0ydchzqj50ogzfnat/plate_currency_icon' }}
+                style={styles.plateIcon}
+              />
+              <View style={styles.platesBalanceInfo}>
+                <Text style={styles.platesBalanceLabel}>{hebrew.shop.plateBalance}</Text>
+                <Text style={styles.platesBalanceValue}>{totalPlates} פלטות</Text>
+              </View>
             </View>
+
+            {getMaxPlatesUsable() > 0 && (
+              <View style={styles.platesSection}>
+                {!showPlateInput ? (
+                  <TouchableOpacity 
+                    style={styles.usePlatesButton}
+                    onPress={() => {
+                      setShowPlateInput(true);
+                      setPlatesInput('');
+                    }}
+                    activeOpacity={0.7}
+                  >
+                    <Text style={styles.usePlatesButtonText}>{hebrew.shop.usePlates}</Text>
+                  </TouchableOpacity>
+                ) : (
+                  <View style={styles.platesInputContainer}>
+                    <View style={styles.platesInputRow}>
+                      <TouchableOpacity
+                        style={styles.platesControlButton}
+                        onPress={() => {
+                          const current = parseInt(platesInput) || 0;
+                          const newValue = Math.max(0, current - 10);
+                          setPlatesInput(newValue.toString());
+                          applyPlates(newValue);
+                        }}
+                        activeOpacity={0.7}
+                      >
+                        <Minus size={20} color={Colors.text} />
+                      </TouchableOpacity>
+                      
+                      <TextInput
+                        style={styles.platesInput}
+                        value={platesInput}
+                        onChangeText={(text) => {
+                          const num = parseInt(text) || 0;
+                          setPlatesInput(text);
+                          applyPlates(num);
+                        }}
+                        keyboardType="number-pad"
+                        placeholder="0"
+                        placeholderTextColor={Colors.textSecondary}
+                      />
+                      
+                      <TouchableOpacity
+                        style={styles.platesControlButton}
+                        onPress={() => {
+                          const current = parseInt(platesInput) || 0;
+                          const newValue = Math.min(getMaxPlatesUsable(), current + 10);
+                          setPlatesInput(newValue.toString());
+                          applyPlates(newValue);
+                        }}
+                        activeOpacity={0.7}
+                      >
+                        <Plus size={20} color={Colors.text} />
+                      </TouchableOpacity>
+                    </View>
+                    
+                    <Text style={styles.platesMaxText}>
+                      {hebrew.shop.maxPlates}: {getMaxPlatesUsable()}
+                    </Text>
+                    
+                    <View style={styles.platesButtonsRow}>
+                      <TouchableOpacity
+                        style={styles.platesMaxButton}
+                        onPress={() => {
+                          const max = getMaxPlatesUsable();
+                          setPlatesInput(max.toString());
+                          applyPlates(max);
+                        }}
+                        activeOpacity={0.7}
+                      >
+                        <Text style={styles.platesMaxButtonText}>השתמש במקסימום</Text>
+                      </TouchableOpacity>
+                      
+                      <TouchableOpacity
+                        style={styles.platesCancelButton}
+                        onPress={() => {
+                          setShowPlateInput(false);
+                          setPlatesInput('');
+                          resetPlates();
+                        }}
+                        activeOpacity={0.7}
+                      >
+                        <Text style={styles.platesCancelButtonText}>{hebrew.common.cancel}</Text>
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                )}
+              </View>
+            )}
+
+            {platesToUse > 0 && (
+              <View style={styles.discountSection}>
+                <View style={styles.discountRow}>
+                  <Text style={styles.discountLabel}>{hebrew.shop.platesApplied}:</Text>
+                  <Text style={styles.discountValue}>-{platesToUse} ₪</Text>
+                </View>
+              </View>
+            )}
+
+            <View style={styles.divider} />
+            
+            <View style={styles.totalRow}>
+              <Text style={styles.totalLabel}>
+                {platesToUse > 0 ? hebrew.shop.originalPrice : hebrew.shop.total}:
+              </Text>
+              <Text style={[styles.totalValue, platesToUse > 0 && styles.originalPriceStrike]}>
+                {getTotal()} ₪
+              </Text>
+            </View>
+
+            {platesToUse > 0 && (
+              <View style={styles.totalRow}>
+                <Text style={styles.finalPriceLabel}>{hebrew.shop.finalPrice}:</Text>
+                <Text style={styles.finalPriceValue}>{getDiscountedTotal()} ₪</Text>
+              </View>
+            )}
+
             <TouchableOpacity
               style={styles.checkoutButton}
-              onPress={() => Alert.alert('תשלום', 'בקרוב: אינטגרציה עם מערכת תשלומים')}
+              onPress={() => Alert.alert('תשלום', `סך הכל לתשלום: ${getDiscountedTotal()} ₪${platesToUse > 0 ? `\nהנחה של ${platesToUse} פלטות הופעלה!` : ''}`)}
               activeOpacity={0.7}
             >
               <Text style={styles.checkoutButtonText}>{hebrew.shop.checkout}</Text>
@@ -300,5 +440,162 @@ const styles = StyleSheet.create({
     fontWeight: '700' as const,
     color: Colors.background,
     writingDirection: 'rtl' as const,
+  },
+  platesBalanceCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#171717',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 16,
+    gap: 12,
+  },
+  plateIcon: {
+    width: 40,
+    height: 40,
+    resizeMode: 'contain' as const,
+  },
+  platesBalanceInfo: {
+    flex: 1,
+  },
+  platesBalanceLabel: {
+    fontSize: 14,
+    color: Colors.textSecondary,
+    textAlign: 'right',
+    writingDirection: 'rtl' as const,
+    marginBottom: 4,
+  },
+  platesBalanceValue: {
+    fontSize: 20,
+    fontWeight: '800' as const,
+    color: Colors.text,
+    textAlign: 'right',
+    writingDirection: 'rtl' as const,
+  },
+  platesSection: {
+    marginBottom: 16,
+  },
+  usePlatesButton: {
+    backgroundColor: Colors.primary,
+    borderRadius: 12,
+    paddingVertical: 14,
+    alignItems: 'center',
+  },
+  usePlatesButtonText: {
+    fontSize: 16,
+    fontWeight: '700' as const,
+    color: Colors.background,
+    writingDirection: 'rtl' as const,
+  },
+  platesInputContainer: {
+    backgroundColor: Colors.card,
+    borderRadius: 12,
+    padding: 16,
+    gap: 12,
+  },
+  platesInputRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  platesControlButton: {
+    backgroundColor: Colors.surface,
+    borderRadius: 8,
+    width: 44,
+    height: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  platesInput: {
+    flex: 1,
+    backgroundColor: Colors.surface,
+    borderRadius: 8,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    fontSize: 18,
+    fontWeight: '700' as const,
+    color: Colors.text,
+    textAlign: 'center',
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  platesMaxText: {
+    fontSize: 14,
+    color: Colors.textSecondary,
+    textAlign: 'center',
+  },
+  platesButtonsRow: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  platesMaxButton: {
+    flex: 1,
+    backgroundColor: Colors.primary,
+    borderRadius: 8,
+    paddingVertical: 10,
+    alignItems: 'center',
+  },
+  platesMaxButtonText: {
+    fontSize: 14,
+    fontWeight: '600' as const,
+    color: Colors.background,
+    writingDirection: 'rtl' as const,
+  },
+  platesCancelButton: {
+    flex: 1,
+    backgroundColor: Colors.surface,
+    borderRadius: 8,
+    paddingVertical: 10,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  platesCancelButtonText: {
+    fontSize: 14,
+    fontWeight: '600' as const,
+    color: Colors.text,
+    writingDirection: 'rtl' as const,
+  },
+  discountSection: {
+    marginBottom: 16,
+  },
+  discountRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 8,
+  },
+  discountLabel: {
+    fontSize: 16,
+    fontWeight: '600' as const,
+    color: Colors.success,
+    writingDirection: 'rtl' as const,
+  },
+  discountValue: {
+    fontSize: 18,
+    fontWeight: '700' as const,
+    color: Colors.success,
+  },
+  divider: {
+    height: 1,
+    backgroundColor: Colors.border,
+    marginVertical: 8,
+  },
+  originalPriceStrike: {
+    textDecorationLine: 'line-through' as const,
+    opacity: 0.5,
+  },
+  finalPriceLabel: {
+    fontSize: 20,
+    fontWeight: '700' as const,
+    color: Colors.text,
+    writingDirection: 'rtl' as const,
+  },
+  finalPriceValue: {
+    fontSize: 28,
+    fontWeight: '800' as const,
+    color: Colors.success,
   },
 });

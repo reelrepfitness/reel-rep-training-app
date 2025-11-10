@@ -99,6 +99,15 @@ export const hebrew = {
     empty: 'הסל ריק',
     features: 'מה כלול',
     perMonth: 'לחודש',
+    plateBalance: 'יתרת פלטות',
+    usePlates: 'השתמש בפלטות',
+    discount: 'הנחה',
+    finalPrice: 'מחיר סופי',
+    originalPrice: 'מחיר מקורי',
+    platesApplied: 'פלטות בשימוש',
+    maxPlates: 'מקסימום',
+    applyDiscount: 'הפעל הנחה',
+    removeDiscount: 'בטל הנחה',
   },
   
   profile: {
