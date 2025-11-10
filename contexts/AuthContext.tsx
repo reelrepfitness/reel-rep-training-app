@@ -18,16 +18,36 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
     },
   });
 
+  const profileQuery = useQuery({
+    queryKey: ['profile', session?.user?.id],
+    queryFn: async () => {
+      if (!session?.user?.id) return null;
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', session.user.id)
+        .single();
+      if (error) {
+        console.error('[Auth] Profile fetch error:', error);
+        return null;
+      }
+      console.log('[Auth] Profile data:', data);
+      return data;
+    },
+    enabled: !!session?.user?.id,
+  });
+
   useEffect(() => {
     if (authQuery.data !== undefined) {
       setSession(authQuery.data);
-      if (authQuery.data?.user) {
+      if (authQuery.data?.user && profileQuery.data !== undefined) {
+        const profile = profileQuery.data;
         const user: User = {
           id: authQuery.data.user.id,
-          name: authQuery.data.user.user_metadata?.name || authQuery.data.user.email?.split('@')[0] || 'User',
+          name: profile?.name || authQuery.data.user.user_metadata?.name || authQuery.data.user.email?.split('@')[0] || 'User',
           email: authQuery.data.user.email || '',
-          role: authQuery.data.user.user_metadata?.role || 'user',
-          profileImage: authQuery.data.user.user_metadata?.avatar_url || '',
+          role: profile?.is_admin ? 'admin' : (profile?.is_coach ? 'coach' : 'user'),
+          profileImage: profile?.avatar_url || authQuery.data.user.user_metadata?.avatar_url || '',
           subscription: {
             plan: authQuery.data.user.user_metadata?.subscription_plan || 'premium',
             classesRemaining: authQuery.data.user.user_metadata?.classes_remaining || 12,
@@ -44,19 +64,25 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
         setCurrentUser(null);
       }
     }
-  }, [authQuery.data]);
+  }, [authQuery.data, profileQuery.data]);
 
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
       console.log('[Auth] State change:', _event, session?.user?.email);
       setSession(session);
       if (session?.user) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', session.user.id)
+          .single();
+        
         const user: User = {
           id: session.user.id,
-          name: session.user.user_metadata?.name || session.user.email?.split('@')[0] || 'User',
+          name: profile?.name || session.user.user_metadata?.name || session.user.email?.split('@')[0] || 'User',
           email: session.user.email || '',
-          role: session.user.user_metadata?.role || 'user',
-          profileImage: session.user.user_metadata?.avatar_url || '',
+          role: profile?.is_admin ? 'admin' : (profile?.is_coach ? 'coach' : 'user'),
+          profileImage: profile?.avatar_url || session.user.user_metadata?.avatar_url || '',
           subscription: {
             plan: session.user.user_metadata?.subscription_plan || 'premium',
             classesRemaining: session.user.user_metadata?.classes_remaining || 12,
@@ -158,12 +184,12 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
     isAuthenticated: currentUser !== null && session !== null,
     isAdmin: currentUser?.role === 'admin',
     isCoach: currentUser?.role === 'coach' || currentUser?.role === 'admin',
-    isLoading: authQuery.isLoading,
+    isLoading: authQuery.isLoading || profileQuery.isLoading,
     signInWithPassword,
     signInWithOTP,
     verifyOTP,
     resetPassword,
     signOut,
     updateUser,
-  }), [currentUser, session, authQuery.isLoading, signInWithPassword, signInWithOTP, verifyOTP, resetPassword, signOut, updateUser]);
+  }), [currentUser, session, authQuery.isLoading, profileQuery.isLoading, signInWithPassword, signInWithOTP, verifyOTP, resetPassword, signOut, updateUser]);
 });
