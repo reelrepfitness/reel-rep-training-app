@@ -36,7 +36,7 @@ export default function ProfileScreen() {
           <View style={styles.profileInfo}>
             <Text style={styles.name}>{user?.name}</Text>
             <Text style={styles.email}>{user?.email}</Text>
-            {user?.subscription && (
+            {user?.subscription?.type && (
               <View style={[styles.subscriptionBadge, { backgroundColor: Colors.primary + '20' }]}>
                 <Text style={[styles.subscriptionText, { color: Colors.primary }]}>
                   {user.subscription.type.toUpperCase()}
@@ -71,7 +71,7 @@ export default function ProfileScreen() {
             <View style={styles.subscriptionCard}>
               <View style={styles.subscriptionRow}>
                 <Text style={styles.subscriptionLabel}>סוג מנוי:</Text>
-                <Text style={styles.subscriptionValue}>{user.subscription.type.toUpperCase()}</Text>
+                <Text style={styles.subscriptionValue}>{user.subscription.type?.toUpperCase() || 'לא זמין'}</Text>
               </View>
               <View style={styles.subscriptionRow}>
                 <Text style={styles.subscriptionLabel}>שיעורים שנותרו:</Text>
