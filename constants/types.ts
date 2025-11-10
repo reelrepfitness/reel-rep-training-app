@@ -94,9 +94,9 @@ export interface Achievement {
   id: string;
   name: string;
   name_hebrew: string;
+  catagory: string | null;
   icon: string;
-  description: string;
-  description_hebrew: string;
+  description_hebrew: string | null;
   task_requirement: number;
   points: number;
   task_type: 'total_weight' | 'challenge' | 'disapline' | 'classes_attended';
