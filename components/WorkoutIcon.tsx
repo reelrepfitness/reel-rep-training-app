@@ -1,5 +1,5 @@
 import React from 'react';
-import Svg, { Defs, LinearGradient, Stop, G, Rect, Path, Circle } from 'react-native-svg';
+import { Image } from 'react-native';
 
 interface WorkoutIconProps {
   size?: number;
@@ -7,70 +7,12 @@ interface WorkoutIconProps {
   weeklyGoal?: number;
 }
 
-export default function WorkoutIcon({ size = 24, progress = 0, weeklyGoal = 4 }: WorkoutIconProps) {
-  const progressPercent = weeklyGoal > 0 ? Math.min((progress / weeklyGoal) * 100, 100) : 0;
-  const radius = 9.57423;
-  const circumference = 2 * Math.PI * radius;
-  const strokeDashoffset = circumference - (progressPercent / 100) * circumference;
-
+export default function WorkoutIcon({ size = 24 }: WorkoutIconProps) {
   return (
-    <Svg width={size} height={size} viewBox="0 0 19.5168 19.1582">
-      <Defs>
-        <LinearGradient
-          id="gradient1"
-          x1="5"
-          x2="5"
-          y2="19.1485"
-          gradientUnits="userSpaceOnUse"
-        >
-          <Stop offset="0" stopColor="#ef6896" stopOpacity="1" />
-          <Stop offset="1" stopColor="#da4477" stopOpacity="1" />
-        </LinearGradient>
-        <LinearGradient
-          id="gradient2"
-          x1="5"
-          x2="5"
-          y2="19.1485"
-          gradientUnits="userSpaceOnUse"
-        >
-          <Stop offset="0" stopColor="rgba(50,50,50,0.85)" stopOpacity="1" />
-          <Stop offset="1" stopColor="rgba(0,0,0,0.85)" stopOpacity="1" />
-        </LinearGradient>
-      </Defs>
-      <G>
-        <Rect height="19.1582" opacity="0" width="19.5168" x="0" y="0" />
-        
-        <Circle
-          cx="9.57423"
-          cy="9.57423"
-          r={radius}
-          fill="none"
-          stroke="#ffffff15"
-          strokeWidth="0.746"
-        />
-        
-        <Circle
-          cx="9.57423"
-          cy="9.57423"
-          r={radius}
-          fill="none"
-          stroke="url(#gradient1)"
-          strokeWidth="0.746"
-          strokeDasharray={circumference}
-          strokeDashoffset={strokeDashoffset}
-          strokeLinecap="round"
-          transform={`rotate(-90 9.57423 9.57423)`}
-        />
-        
-        <Path
-          d="M9.57423 19.1485C14.8684 19.1485 19.1555 14.8614 19.1555 9.57423C19.1555 4.28009 14.8684 0 9.57423 0C4.28712 0 0 4.28009 0 9.57423C0 14.8614 4.28712 19.1485 9.57423 19.1485ZM9.57423 18.4023C4.69612 18.4023 0.746131 14.4523 0.746131 9.57423C0.746131 4.68909 4.69612 0.7391 9.57423 0.7391C14.4594 0.7391 18.4094 4.68909 18.4094 9.57423C18.4094 14.4523 14.4594 18.4023 9.57423 18.4023Z"
-          fill="url(#gradient1)"
-        />
-        <Path
-          d="M9.5715 5.1883C10.2231 5.1883 10.7434 4.66096 10.7434 4.00393C10.7434 3.36643 10.2231 2.84182 9.5715 2.84182C8.92423 2.84182 8.40392 3.36643 8.40392 4.00393C8.40392 4.66096 8.92423 5.1883 9.5715 5.1883ZM8.38986 9.41408L10.7602 9.41408L10.7602 7.91565C10.7602 7.82776 10.8969 7.77893 10.9582 7.89885L12.4692 10.9457C12.5891 11.2094 12.9141 11.3293 13.1918 11.1899C13.4414 11.0629 13.5656 10.7406 13.4262 10.4672L11.4492 6.4676C11.2121 5.98908 10.7727 5.70862 10.209 5.70862L8.92697 5.70862C8.38009 5.70862 7.93791 5.98908 7.70353 6.4676L5.72111 10.4672C5.58439 10.7406 5.70861 11.0629 5.95548 11.1899C6.22892 11.3293 6.54416 11.2094 6.67814 10.9457L8.19181 7.89885C8.25314 7.77893 8.38986 7.81799 8.38986 7.90862ZM7.39103 15.841C7.64494 15.8926 7.93791 15.7559 8.0258 15.3918L8.52658 13.0844L9.5715 11.034L10.6094 13.0844L11.1215 15.3918C11.1953 15.7727 11.5289 15.8996 11.7953 15.8242C12.0422 15.7559 12.2445 15.5145 12.1692 15.1504L11.6586 12.7719C11.6418 12.7258 11.6348 12.6867 11.6223 12.6449L10.9145 10.636L8.23556 10.636L7.51798 12.6449C7.50548 12.6867 7.49142 12.7258 7.48869 12.7719L6.98087 15.1504C6.89298 15.5383 7.12033 15.7922 7.39103 15.841ZM4.15236 11.8344L4.66017 11.8344C4.80197 11.8344 4.92033 11.716 4.92033 11.5645L4.92033 8.47854C4.92033 8.32698 4.80197 8.21838 4.66017 8.21838L4.15236 8.21838C4.01056 8.21838 3.8922 8.32698 3.8922 8.47854L3.8922 11.5645C3.8922 11.716 4.01056 11.8344 4.15236 11.8344ZM14.4731 11.8344L14.9879 11.8344C15.1297 11.8344 15.2481 11.716 15.2481 11.5645L15.2481 8.47854C15.2481 8.32698 15.1297 8.21838 14.9879 8.21838L14.4731 8.21838C14.3313 8.21838 14.2129 8.32698 14.2129 8.47854L14.2129 11.5645C14.2129 11.716 14.3313 11.8344 14.4731 11.8344ZM3.44298 10.2446L15.6973 10.2446C15.8055 10.2446 15.9168 10.1332 15.9168 10.025C15.9168 9.89299 15.8055 9.80549 15.6973 9.80549L3.44298 9.80549C3.33478 9.80549 3.22345 9.89299 3.22345 10.025C3.22345 10.1332 3.33478 10.2446 3.44298 10.2446Z"
-          fill="url(#gradient2)"
-        />
-      </G>
-    </Svg>
+    <Image
+      source={{ uri: 'https://pub-e001eb4506b145aa938b5d3badbff6a5.r2.dev/attachments/a5oiqr0mrnqkje9999g2n' }}
+      style={{ width: size, height: size }}
+      resizeMode="contain"
+    />
   );
 }
