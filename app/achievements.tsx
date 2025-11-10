@@ -1,5 +1,5 @@
 import { StyleSheet, Text, View, ScrollView, TouchableOpacity, Dimensions, Image, Alert } from "react-native";
-import { Award, TrendingUp, Target, Dumbbell } from 'lucide-react-native';
+import { Award, TrendingUp, Target, CircleDollarSign } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAchievements } from '@/contexts/AchievementsContext';
@@ -68,6 +68,11 @@ export default function AchievementsScreen() {
           {userAchievement.achievement.description}
         </Text>
         <View style={styles.achievementIconContainer}>
+          <View style={[
+            styles.iconGlow,
+            completed && styles.iconGlowCompleted,
+            isChallenge && styles.iconGlowChallenge,
+          ]} />
           <Image 
             source={{ uri: userAchievement.achievement.icon }} 
             style={[styles.achievementIcon, completed && styles.completedIcon]}
@@ -88,7 +93,7 @@ export default function AchievementsScreen() {
         <Text style={[
           styles.achievementSubtitle,
           completed && styles.completedSubtitleText,
-        ]} numberOfLines={2}>
+        ]}>
           {userAchievement.achievement.description_hebrew}
         </Text>
         {!completed && (
@@ -137,7 +142,7 @@ export default function AchievementsScreen() {
             <Text style={styles.availableTitle} numberOfLines={2}>
               {achievement.name_hebrew}
             </Text>
-            <Text style={styles.availableSubtitle} numberOfLines={2}>
+            <Text style={styles.availableSubtitle}>
               {achievement.description_hebrew}
             </Text>
             {!isChallenge && (
@@ -153,8 +158,8 @@ export default function AchievementsScreen() {
           </View>
           <View style={styles.availableActions}>
             <View style={styles.pointsBadge}>
+              <CircleDollarSign size={16} color={Colors.primary} style={{ marginBottom: 2 }} />
               <Text style={styles.pointsText}>{achievement.points}</Text>
-              <Text style={styles.pointsLabel}>נקודות</Text>
             </View>
             {isChallenge && (
               <TouchableOpacity 
@@ -242,9 +247,9 @@ export default function AchievementsScreen() {
           </View>
           <View style={styles.statDivider} />
           <View style={styles.statBox}>
-            <Dumbbell size={24} color={Colors.success} />
+            <CircleDollarSign size={24} color={Colors.accent} />
             <Text style={styles.statValue}>{totalPoints}</Text>
-            <Text style={styles.statLabel}>נקודות</Text>
+            <Text style={styles.statLabel}>פלטות</Text>
           </View>
         </View>
       </View>
@@ -408,13 +413,31 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     position: 'relative' as const,
   },
+  iconGlow: {
+    position: 'absolute' as const,
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    backgroundColor: Colors.primary,
+    opacity: 0.15,
+  },
+  iconGlowCompleted: {
+    backgroundColor: Colors.success,
+    opacity: 0.25,
+  },
+  iconGlowChallenge: {
+    backgroundColor: '#ffffff',
+    opacity: 0.1,
+  },
   achievementIcon: {
     width: 64,
     height: 64,
     borderRadius: 32,
+    borderWidth: 3,
+    borderColor: Colors.border,
   },
   completedIcon: {
-    opacity: 0.8,
+    borderColor: Colors.success,
   },
   completedBadge: {
     position: 'absolute' as const,
@@ -445,7 +468,6 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginBottom: 10,
     writingDirection: 'rtl' as const,
-    minHeight: 26,
   },
   completedSubtitleText: {
     color: Colors.success + '80',
@@ -534,6 +556,7 @@ const styles = StyleSheet.create({
     color: Colors.textSecondary,
     writingDirection: 'rtl' as const,
     marginBottom: 8,
+    lineHeight: 18,
   },
   availableProgressContainer: {
     width: '100%',
@@ -563,20 +586,16 @@ const styles = StyleSheet.create({
   pointsBadge: {
     backgroundColor: Colors.primary + '15',
     paddingHorizontal: 12,
-    paddingVertical: 6,
+    paddingVertical: 8,
     borderRadius: 12,
     alignItems: 'center',
+    flexDirection: 'row',
+    gap: 4,
   },
   pointsText: {
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: '800' as const,
     color: Colors.primary,
-  },
-  pointsLabel: {
-    fontSize: 10,
-    fontWeight: '600' as const,
-    color: Colors.primary,
-    writingDirection: 'rtl' as const,
   },
   acceptButton: {
     backgroundColor: Colors.primary,
