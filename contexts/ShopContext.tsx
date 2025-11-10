@@ -5,13 +5,11 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import { CartItem, SubscriptionPackage, PaymentMethod } from '@/constants/types';
 import { subscriptionPackages } from '@/constants/mockData';
 import { useAuth } from './AuthContext';
-import { useAchievements } from './AchievementsContext';
 
 const CART_STORAGE_KEY = '@reelrep_cart';
 
 export const [ShopProvider, useShop] = createContextHook(() => {
   const { user } = useAuth();
-  const { totalPlates } = useAchievements();
   const [cart, setCart] = useState<CartItem[]>([]);
   const [packages] = useState<SubscriptionPackage[]>(subscriptionPackages);
   const [platesToUse, setPlatesToUse] = useState<number>(0);
@@ -100,8 +98,9 @@ export const [ShopProvider, useShop] = createContextHook(() => {
 
   const getMaxPlatesUsable = useCallback(() => {
     const total = getTotal();
-    return Math.min(totalPlates, total);
-  }, [getTotal, totalPlates]);
+    const userPlateBalance = user?.plateBalance || 0;
+    return Math.min(userPlateBalance, total);
+  }, [getTotal, user?.plateBalance]);
 
   const applyPlates = useCallback((amount: number) => {
     const maxUsable = getMaxPlatesUsable();
@@ -145,7 +144,6 @@ export const [ShopProvider, useShop] = createContextHook(() => {
     packages,
     isLoading: cartQuery.isLoading,
     isProcessing: checkoutMutation.isPending,
-    totalPlates,
     platesToUse,
     addToCart,
     removeFromCart,
@@ -157,5 +155,5 @@ export const [ShopProvider, useShop] = createContextHook(() => {
     applyPlates,
     resetPlates,
     checkout,
-  }), [cart, packages, cartQuery.isLoading, checkoutMutation.isPending, totalPlates, platesToUse, addToCart, removeFromCart, updateQuantity, clearCart, getTotal, getDiscountedTotal, getMaxPlatesUsable, applyPlates, resetPlates, checkout]);
+  }), [cart, packages, cartQuery.isLoading, checkoutMutation.isPending, platesToUse, addToCart, removeFromCart, updateQuantity, clearCart, getTotal, getDiscountedTotal, getMaxPlatesUsable, applyPlates, resetPlates, checkout]);
 });
