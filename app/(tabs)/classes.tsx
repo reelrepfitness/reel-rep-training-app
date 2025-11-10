@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View, ScrollView, TouchableOpacity, Alert } from 'react-native';
+import { StyleSheet, Text, View, ScrollView, TouchableOpacity, Alert, Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Lock, ClockAlert, Calendar } from 'lucide-react-native';
 import { useAuth } from '@/contexts/AuthContext';
@@ -261,7 +261,7 @@ export default function ClassesScreen() {
           contentContainerStyle={styles.calendarStrip}
           style={styles.calendarStripContainer}
           directionalLockEnabled
-          inverted
+          inverted={Platform.OS !== 'web'}
         >
           {calendarDays.map((day, index) => {
             const bookedClass = getUserClassForDay(day.dayOfWeek);
