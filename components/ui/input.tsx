@@ -11,7 +11,7 @@ import Colors from '@/constants/colors';
 
 interface InputProps extends TextInputProps {
   label?: string;
-  error?: string;
+  error?: string | undefined;
   icon?: LucideIcon;
 }
 
@@ -37,7 +37,7 @@ export function Input({
           {...props}
         />
       </View>
-      {error && <Text style={styles.error}>{error}</Text>}
+      {error !== undefined && error !== '' && <Text style={styles.error}>{error}</Text>}
     </View>
   );
 }

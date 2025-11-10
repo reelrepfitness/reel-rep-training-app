@@ -30,9 +30,9 @@ export default function AuthScreen() {
     }
   }, [isAuthenticated, router]);
 
-  const emailError = email && !email.includes('@') ? 'נא להזין כתובת אימייל תקינה' : '';
-  const passwordError = password && password.length < 6 ? 'הסיסמה חייבת להכיל לפחות 6 תווים' : '';
-  const otpError = otp && otp.length !== 6 ? 'הקוד חייב להכיל 6 ספרות' : '';
+  const emailError = email && !email.includes('@') ? 'נא להזין כתובת אימייל תקינה' : undefined;
+  const passwordError = password && password.length < 6 ? 'הסיסמה חייבת להכיל לפחות 6 תווים' : undefined;
+  const otpError = otp && otp.length !== 6 ? 'הקוד חייב להכיל 6 ספרות' : undefined;
 
   const handleSignIn = async () => {
     if (emailError || passwordError) return;
