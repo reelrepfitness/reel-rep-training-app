@@ -186,7 +186,5 @@ const styles = StyleSheet.create({
   closeButton: {
     padding: 4,
   },
-  content: {
-    flex: 1,
-  },
+  content: {},
 });
