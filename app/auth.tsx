@@ -86,12 +86,6 @@ export default function AuthScreen() {
 
   return (
     <View style={[styles.container, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
-      <LinearGradient
-        colors={[Colors.gradient1, Colors.gradient2]}
-        style={styles.gradient}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-      />
       
       <ScrollView 
         contentContainerStyle={styles.scrollContent}
@@ -100,7 +94,7 @@ export default function AuthScreen() {
         <View style={styles.header}>
           <View style={styles.logoContainer}>
             <Image 
-              source={{ uri: 'https://res.cloudinary.com/diwe4xzro/image/upload/v1762769789/gegfergerg_posbe8.png' }}
+              source={{ uri: 'https://res.cloudinary.com/diwe4xzro/image/upload/v1762770356/wwefwefgw_j7wn0i.png' }}
               style={styles.logo}
               resizeMode="contain"
             />
@@ -294,14 +288,7 @@ export default function AuthScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.background,
-  },
-  gradient: {
-    position: 'absolute' as const,
-    left: 0,
-    right: 0,
-    top: 0,
-    height: '100%' as const,
+    backgroundColor: '#171717',
   },
   scrollContent: {
     flexGrow: 1,
@@ -317,7 +304,7 @@ const styles = StyleSheet.create({
     width: 100,
     height: 100,
     borderRadius: 50,
-    backgroundColor: Colors.background,
+    backgroundColor: '#ffffff',
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 24,
@@ -330,7 +317,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 36,
     fontWeight: '900' as const,
-    color: Colors.background,
+    color: '#ffffff',
     textAlign: 'center',
     marginBottom: 8,
     writingDirection: 'rtl' as const,
@@ -338,7 +325,7 @@ const styles = StyleSheet.create({
   tagline: {
     fontSize: 16,
     fontWeight: '600' as const,
-    color: Colors.background + 'E0',
+    color: '#ffffffE0',
     textAlign: 'center',
     writingDirection: 'rtl' as const,
   },
@@ -378,7 +365,7 @@ const styles = StyleSheet.create({
     writingDirection: 'rtl' as const,
   },
   primaryButton: {
-    backgroundColor: Colors.primary,
+    backgroundColor: '#da4477',
     borderRadius: 16,
     paddingVertical: 18,
     alignItems: 'center',
