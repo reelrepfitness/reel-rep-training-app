@@ -197,14 +197,14 @@ export default function ClassesScreen() {
     .map(Number)
     .sort((a, b) => a - b);
 
+  const getUserClassForDay = (dayOfWeek: number) => {
+    const dayClasses = groupedClasses[dayOfWeek] || [];
+    return dayClasses.find((c) => isClassBooked(c.id));
+  };
+
   const filteredClasses = selectedDay !== null 
     ? (groupedClasses[selectedDay] || []).sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
-    : classes.sort((a, b) => {
-        const dayA = getDayOfWeek(a.date);
-        const dayB = getDayOfWeek(b.date);
-        if (dayA !== dayB) return dayA - dayB;
-        return new Date(a.date).getTime() - new Date(b.date).getTime();
-      });
+    : [];
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
@@ -225,30 +225,40 @@ export default function ClassesScreen() {
         contentContainerStyle={styles.calendarStrip}
         style={styles.calendarStripContainer}
       >
-        {calendarDays.map((day, index) => (
-          <TouchableOpacity
-            key={`${day.dayOfWeek}-${index}`}
-            style={[
-              styles.calendarDayButton,
-              selectedDay === day.dayOfWeek && styles.calendarDayButtonActive,
-              !day.isAvailable && styles.calendarDayButtonDisabled,
-            ]}
-            onPress={() => day.isAvailable && setSelectedDay(day.dayOfWeek)}
-            activeOpacity={0.7}
-            disabled={!day.isAvailable}
-          >
-            <Text style={[
-              styles.calendarDayName,
-              selectedDay === day.dayOfWeek && styles.calendarDayNameActive,
-              !day.isAvailable && styles.calendarDayNameDisabled,
-            ]}>{DAYS_OF_WEEK[day.dayOfWeek]}</Text>
-            <Text style={[
-              styles.calendarDayNumber,
-              selectedDay === day.dayOfWeek && styles.calendarDayNumberActive,
-              !day.isAvailable && styles.calendarDayNumberDisabled,
-            ]}>{day.dayNumber}</Text>
-          </TouchableOpacity>
-        ))}
+        {calendarDays.map((day, index) => {
+          const bookedClass = getUserClassForDay(day.dayOfWeek);
+          return (
+            <TouchableOpacity
+              key={`${day.dayOfWeek}-${index}`}
+              style={[
+                styles.calendarDayCard,
+                selectedDay === day.dayOfWeek && styles.calendarDayCardActive,
+                !day.isAvailable && styles.calendarDayCardDisabled,
+              ]}
+              onPress={() => {
+                if (day.isAvailable) {
+                  setSelectedDay(selectedDay === day.dayOfWeek ? null : day.dayOfWeek);
+                }
+              }}
+              activeOpacity={0.7}
+              disabled={!day.isAvailable}
+            >
+              <Text style={[
+                styles.calendarDayNumber,
+                selectedDay === day.dayOfWeek && styles.calendarDayNumberActive,
+                !day.isAvailable && styles.calendarDayNumberDisabled,
+              ]}>{day.dayNumber}</Text>
+              <Text style={[
+                styles.calendarDayName,
+                selectedDay === day.dayOfWeek && styles.calendarDayNameActive,
+                !day.isAvailable && styles.calendarDayNameDisabled,
+              ]}>{DAYS_OF_WEEK[day.dayOfWeek]}</Text>
+              {bookedClass && day.isAvailable && (
+                <Text style={styles.bookedClassTime}>רשום ל{bookedClass.time}</Text>
+              )}
+            </TouchableOpacity>
+          );
+        })}
       </ScrollView>
 
       <ScrollView 
@@ -256,44 +266,17 @@ export default function ClassesScreen() {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {selectedDay === null && Object.keys(groupedClasses)
-          .filter(key => key !== 'nextWeek')
-          .map(Number)
-          .sort((a, b) => a - b)
-          .map((day) => (
-            <View key={day}>
-              <View style={styles.daySectionHeader}>
-                <Text style={styles.daySectionTitle}>יום {DAYS_OF_WEEK[day]}</Text>
-                <View style={styles.daySectionLine} />
-              </View>
-              {(groupedClasses[day] || [])
-                .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
-                .map((classItem) => {
-                  const booked = isClassBooked(classItem.id);
-                  const isFull = classItem.enrolled >= classItem.capacity;
-                  const isNextWeekClass = isNextWeek(classItem.date);
-                  const isRegOpen = isRegistrationOpen();
-                  const isLocked = isNextWeekClass && !isRegOpen;
-                  
-                  return (
-                    <ClassCard
-                      key={classItem.id}
-                      classItem={classItem}
-                      booked={booked}
-                      isFull={isFull}
-                      isLocked={isLocked}
-                      countdown={countdown}
-                      onBook={handleBookClass}
-                      getDifficultyColor={getDifficultyColor}
-                      getCapacityColor={getCapacityColor}
-                      getCapacityPercentage={getCapacityPercentage}
-                    />
-                  );
-                })}
-            </View>
-          ))}
-        
-        {selectedDay !== null && filteredClasses.map((classItem) => {
+        {selectedDay === null ? (
+          <View style={styles.emptyState}>
+            <Calendar size={48} color={Colors.textSecondary} />
+            <Text style={styles.emptyStateText}>בחר יום כדי לראות שיעורים זמינים</Text>
+          </View>
+        ) : filteredClasses.length === 0 ? (
+          <View style={styles.emptyState}>
+            <Calendar size={48} color={Colors.textSecondary} />
+            <Text style={styles.emptyStateText}>אין שיעורים זמינים ביום זה</Text>
+          </View>
+        ) : filteredClasses.map((classItem) => {
           const booked = isClassBooked(classItem.id);
           const isFull = classItem.enrolled >= classItem.capacity;
           const isNextWeekClass = isNextWeek(classItem.date);
@@ -736,36 +719,57 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: Colors.border,
     backgroundColor: Colors.background,
+    maxHeight: 110,
   },
   calendarStrip: {
     paddingHorizontal: 16,
     paddingVertical: 12,
-    gap: 10,
+    gap: 8,
     flexDirection: 'row-reverse',
   },
-  calendarDayButton: {
-    width: 60,
+  calendarDayCard: {
+    minWidth: 70,
     paddingVertical: 10,
+    paddingHorizontal: 12,
     borderRadius: 12,
     backgroundColor: Colors.card,
     borderWidth: 1,
     borderColor: Colors.border,
     alignItems: 'center',
     justifyContent: 'center',
+    shadowColor: Colors.shadow,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 1,
   },
-  calendarDayButtonActive: {
+  calendarDayCardActive: {
     backgroundColor: Colors.primary,
     borderColor: Colors.primary,
+    shadowOpacity: 0.15,
+    shadowRadius: 4,
+    elevation: 3,
   },
-  calendarDayButtonDisabled: {
+  calendarDayCardDisabled: {
     opacity: 0.4,
   },
+  calendarDayNumber: {
+    fontSize: 18,
+    fontWeight: '700' as const,
+    color: Colors.text,
+    marginBottom: 2,
+  },
+  calendarDayNumberActive: {
+    color: Colors.background,
+  },
+  calendarDayNumberDisabled: {
+    color: Colors.textSecondary,
+  },
   calendarDayName: {
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: '600' as const,
     color: Colors.textSecondary,
     writingDirection: 'rtl' as const,
-    marginBottom: 4,
   },
   calendarDayNameActive: {
     color: Colors.background,
@@ -773,16 +777,13 @@ const styles = StyleSheet.create({
   calendarDayNameDisabled: {
     color: Colors.textSecondary,
   },
-  calendarDayNumber: {
-    fontSize: 16,
-    fontWeight: '700' as const,
-    color: Colors.text,
-  },
-  calendarDayNumberActive: {
-    color: Colors.background,
-  },
-  calendarDayNumberDisabled: {
-    color: Colors.textSecondary,
+  bookedClassTime: {
+    fontSize: 9,
+    fontWeight: '600' as const,
+    color: '#10B981',
+    writingDirection: 'rtl' as const,
+    marginTop: 4,
+    textAlign: 'center',
   },
   dayButton: {
     paddingHorizontal: 12,
@@ -920,5 +921,19 @@ const styles = StyleSheet.create({
     fontWeight: '600' as const,
     color: Colors.primary,
     writingDirection: 'rtl' as const,
+  },
+  emptyState: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 80,
+    gap: 16,
+  },
+  emptyStateText: {
+    fontSize: 16,
+    fontWeight: '600' as const,
+    color: Colors.textSecondary,
+    writingDirection: 'rtl' as const,
+    textAlign: 'center',
   },
 });
