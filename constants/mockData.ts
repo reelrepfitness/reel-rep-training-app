@@ -26,6 +26,7 @@ export const mockUser: User = {
   totalWorkouts: 24,
   weeklyGoal: 4,
   currentStreak: 7,
+  plateBalance: 450,
 };
 
 export const mockCoach: User = {
@@ -386,6 +387,7 @@ export const mockUsers: User[] = [
     totalWorkouts: 15,
     weeklyGoal: 3,
     currentStreak: 3,
+    plateBalance: 120,
   },
   {
     id: '4',
@@ -405,5 +407,6 @@ export const mockUsers: User[] = [
     totalWorkouts: 42,
     weeklyGoal: 5,
     currentStreak: 14,
+    plateBalance: 850,
   },
 ];

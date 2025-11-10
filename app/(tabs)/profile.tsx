@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View, ScrollView, TouchableOpacity } from 'react-native';
+import { StyleSheet, Text, View, ScrollView, TouchableOpacity, Image } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { User, Settings, LogOut, Trophy, Dumbbell, TrendingUp, Shield } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
@@ -43,6 +43,18 @@ export default function ProfileScreen() {
                 </Text>
               </View>
             )}
+          </View>
+        </View>
+        <View style={styles.plateBalanceCard}>
+          <View style={styles.plateBalanceContent}>
+            <Image 
+              source={{ uri: 'https://pub-e001eb4506b145aa938b5d3badbff6a5.r2.dev/attachments/qmix9kvsaxeiodcudbn96' }}
+              style={styles.plateIcon}
+            />
+            <View>
+              <Text style={styles.plateBalanceLabel}>יתרת פלטות</Text>
+              <Text style={styles.plateBalanceValue}>{user?.plateBalance || 0}</Text>
+            </View>
           </View>
         </View>
       </View>
@@ -290,6 +302,42 @@ const styles = StyleSheet.create({
     fontWeight: '600' as const,
     color: Colors.text,
     flex: 1,
+    textAlign: 'right',
+    writingDirection: 'rtl' as const,
+  },
+  plateBalanceCard: {
+    backgroundColor: '#171717',
+    borderRadius: 16,
+    padding: 16,
+    marginTop: 16,
+    shadowColor: Colors.shadow,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 2,
+  },
+  plateBalanceContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 16,
+  },
+  plateIcon: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+  },
+  plateBalanceLabel: {
+    fontSize: 14,
+    fontWeight: '600' as const,
+    color: '#ffffff80',
+    textAlign: 'right',
+    writingDirection: 'rtl' as const,
+    marginBottom: 4,
+  },
+  plateBalanceValue: {
+    fontSize: 28,
+    fontWeight: '800' as const,
+    color: '#ffffff',
     textAlign: 'right',
     writingDirection: 'rtl' as const,
   },

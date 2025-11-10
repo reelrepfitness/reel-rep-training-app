@@ -180,6 +180,13 @@ export default function HomeScreen() {
       >
         <View style={styles.header}>
           <View style={styles.headerTop}>
+            <View style={styles.plateBalanceHeader}>
+              <Image 
+                source={{ uri: 'https://pub-e001eb4506b145aa938b5d3badbff6a5.r2.dev/attachments/qmix9kvsaxeiodcudbn96' }}
+                style={styles.plateIconSmall}
+              />
+              <Text style={styles.plateBalanceText}>{user?.plateBalance || 0}</Text>
+            </View>
             <View style={styles.headerTextContainer}>
               <Text style={styles.welcomeText}>{hebrew.home.greeting}</Text>
               <Text style={styles.userName}>{user?.name} 💪</Text>
@@ -1320,5 +1327,27 @@ const styles = StyleSheet.create({
   },
   lockedText: {
     color: Colors.textSecondary,
+  },
+  plateBalanceHeader: {
+    position: 'absolute' as const,
+    left: 16,
+    top: 0,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    backgroundColor: '#ffffff15',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 20,
+  },
+  plateIconSmall: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+  },
+  plateBalanceText: {
+    fontSize: 18,
+    fontWeight: '800' as const,
+    color: '#ffffff',
   },
 });
