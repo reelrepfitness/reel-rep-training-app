@@ -30,17 +30,25 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
     queryKey: ['profile', sessionId],
     queryFn: async () => {
       if (!sessionId) return null;
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', sessionId)
-        .single();
-      if (error) {
-        console.error('[Auth] Profile fetch error:', error);
+      try {
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('id, name, avatar_url, is_admin, is_coach')
+          .eq('id', sessionId)
+          .single();
+        if (error) {
+          console.error('[Auth] Profile fetch error:', error.message);
+          if (error.code === '42P17') {
+            console.warn('[Auth] Infinite recursion in RLS policy detected. Returning null.');
+          }
+          return null;
+        }
+        console.log('[Auth] Profile data:', data);
+        return data;
+      } catch (err) {
+        console.error('[Auth] Profile fetch exception:', err);
         return null;
       }
-      console.log('[Auth] Profile data:', data);
-      return data;
     },
     enabled: !!sessionId,
   });

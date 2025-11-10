@@ -404,8 +404,6 @@ function ClassCard({
               
               <View style={styles.classCardInner}>
                 <View style={styles.dateCard}>
-                  <Text style={styles.dateCardNumber}>{dayNumber}</Text>
-                  <Text style={styles.dateCardDay}>{dayOfWeek}</Text>
                   <Text style={styles.dateCardTime}>{classItem.time}</Text>
                 </View>
                 
@@ -612,11 +610,11 @@ const styles = StyleSheet.create({
   dateCard: {
     backgroundColor: Colors.primary,
     borderRadius: 12,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
     alignItems: 'center',
     justifyContent: 'center',
-    minWidth: 60,
+    minWidth: 70,
     alignSelf: 'flex-start',
   },
   dateCardNumber: {
@@ -632,10 +630,9 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   dateCardTime: {
-    fontSize: 13,
-    fontWeight: '700' as const,
+    fontSize: 20,
+    fontWeight: '800' as const,
     color: Colors.background,
-    marginTop: 4,
     writingDirection: 'rtl' as const,
   },
   description: {
