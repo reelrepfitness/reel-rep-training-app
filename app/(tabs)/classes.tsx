@@ -402,17 +402,20 @@ function ClassCard({
                 </View>
               )}
               
-              <View style={styles.dateCard}>
-                <Text style={styles.dateCardNumber}>{dayNumber}</Text>
-                <Text style={styles.dateCardDay}>{dayOfWeek}</Text>
-              </View>
-              
-              <View style={[styles.classHeader, isLocked && styles.classHeaderWithBanner]}>
-                <View style={styles.classInfo}>
-                  <Text style={[styles.className, isLocked && styles.textLocked]}>{classItem.title}</Text>
-                  <Text style={[styles.instructor, isLocked && styles.textLocked]}>
-                    מאמן: {classItem.instructor}
-                  </Text>
+              <View style={styles.classCardInner}>
+                <View style={styles.dateCard}>
+                  <Text style={styles.dateCardNumber}>{dayNumber}</Text>
+                  <Text style={styles.dateCardDay}>{dayOfWeek}</Text>
+                  <Text style={styles.dateCardTime}>{classItem.time}</Text>
+                </View>
+                
+                <View style={[styles.classHeader, isLocked && styles.classHeaderWithBanner]}>
+                  <View style={styles.classInfo}>
+                    <Text style={[styles.className, isLocked && styles.textLocked]}>{classItem.title}</Text>
+                    <Text style={[styles.instructor, isLocked && styles.textLocked]}>
+                      מאמן: {classItem.instructor}
+                    </Text>
+                  </View>
                 </View>
               </View>
 
@@ -571,12 +574,16 @@ const styles = StyleSheet.create({
     color: Colors.background,
     writingDirection: 'rtl' as const,
   },
+  classCardInner: {
+    flexDirection: 'row',
+    gap: 12,
+  },
   classHeader: {
+    flex: 1,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
     marginBottom: 12,
-    paddingRight: 70,
   },
   classHeaderWithBanner: {
     marginTop: 32,
@@ -603,34 +610,33 @@ const styles = StyleSheet.create({
     color: Colors.textSecondary,
   },
   dateCard: {
-    position: 'absolute' as const,
-    top: 16,
-    right: 16,
     backgroundColor: Colors.primary,
     borderRadius: 12,
     paddingHorizontal: 12,
-    paddingVertical: 8,
+    paddingVertical: 10,
     alignItems: 'center',
     justifyContent: 'center',
-    minWidth: 50,
-    zIndex: 2,
-    shadowColor: Colors.shadow,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.15,
-    shadowRadius: 4,
-    elevation: 3,
+    minWidth: 60,
+    alignSelf: 'flex-start',
   },
   dateCardNumber: {
-    fontSize: 20,
+    fontSize: 22,
     fontWeight: '800' as const,
     color: Colors.background,
   },
   dateCardDay: {
-    fontSize: 11,
+    fontSize: 10,
     fontWeight: '600' as const,
     color: Colors.background,
     writingDirection: 'rtl' as const,
     marginTop: 2,
+  },
+  dateCardTime: {
+    fontSize: 13,
+    fontWeight: '700' as const,
+    color: Colors.background,
+    marginTop: 4,
+    writingDirection: 'rtl' as const,
   },
   description: {
     fontSize: 14,
