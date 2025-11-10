@@ -37,10 +37,11 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
           .eq('id', sessionId)
           .single();
         if (error) {
-          console.error('[Auth] Profile fetch error:', error.message);
           if (error.code === '42P17') {
-            console.warn('[Auth] Infinite recursion in RLS policy detected. Returning null.');
+            console.warn('[Auth] RLS policy has infinite recursion. Fix Supabase policies. Using fallback.');
+            return null;
           }
+          console.error('[Auth] Profile fetch error:', error.message);
           return null;
         }
         console.log('[Auth] Profile data:', data);
@@ -51,6 +52,8 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
       }
     },
     enabled: !!sessionId,
+    retry: false,
+    staleTime: 5 * 60 * 1000,
   });
 
   useEffect(() => {
