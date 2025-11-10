@@ -67,7 +67,7 @@ export const hebrew = {
     spotsLeft: 'מקומות פנויים',
     instructor: 'מדריך',
     duration: 'משך',
-    minutes: 'דקות',
+    durationMinutes: 'דקות',
     difficulty: 'רמת קושי',
     beginner: 'מתחיל',
     intermediate: 'בינוני',
@@ -76,6 +76,13 @@ export const hebrew = {
     classesUsed: 'שיעורים שנוצלו',
     classesRemaining: 'שיעורים נותרו',
     upgradeSubscription: 'שדרג מנוי',
+    registrationOpensIn: 'ההרשמה תפתח בעוד',
+    nextWeek: 'השבוע הבא',
+    thisWeek: 'השבוע הנוכחי',
+    countdownDays: 'ימים',
+    countdownHours: 'שעות',
+    countdownMinutes: 'דקות',
+    and: 'ו',
   },
   
   shop: {

@@ -1,15 +1,118 @@
 import { StyleSheet, Text, View, ScrollView, TouchableOpacity, Alert } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Clock, Users, MapPin } from 'lucide-react-native';
+import { Clock, Users, MapPin, Lock } from 'lucide-react-native';
 import { useAuth } from '@/contexts/AuthContext';
 import { useClasses } from '@/contexts/ClassesContext';
 import Colors from '@/constants/colors';
 import { hebrew } from '@/constants/hebrew';
+import { useState, useEffect } from 'react';
+
+function getNextThursdayNoon(): Date {
+  const now = new Date();
+  const currentDay = now.getDay();
+  const currentHour = now.getHours();
+  
+  let daysUntilThursday = (4 - currentDay + 7) % 7;
+  
+  if (currentDay === 4 && currentHour >= 12) {
+    daysUntilThursday = 7;
+  } else if (currentDay === 4 && currentHour < 12) {
+    daysUntilThursday = 0;
+  }
+  
+  const nextThursday = new Date(now);
+  nextThursday.setDate(now.getDate() + daysUntilThursday);
+  nextThursday.setHours(12, 0, 0, 0);
+  
+  return nextThursday;
+}
+
+function getWeekRange(date: Date): { start: Date; end: Date } {
+  const dayOfWeek = date.getDay();
+  const sunday = new Date(date);
+  sunday.setDate(date.getDate() - dayOfWeek);
+  sunday.setHours(0, 0, 0, 0);
+  
+  const friday = new Date(sunday);
+  friday.setDate(sunday.getDate() + 5);
+  friday.setHours(23, 59, 59, 999);
+  
+  return { start: sunday, end: friday };
+}
+
+function isNextWeek(classDate: string): boolean {
+  const now = new Date();
+  
+  const thisWeekRange = getWeekRange(now);
+  const nextWeekStart = new Date(thisWeekRange.end);
+  nextWeekStart.setDate(nextWeekStart.getDate() + 1);
+  nextWeekStart.setHours(0, 0, 0, 0);
+  
+  const nextWeekEnd = new Date(nextWeekStart);
+  nextWeekEnd.setDate(nextWeekStart.getDate() + 5);
+  nextWeekEnd.setHours(23, 59, 59, 999);
+  
+  const classDateTime = new Date(classDate);
+  
+  return classDateTime >= nextWeekStart && classDateTime <= nextWeekEnd;
+}
+
+function isRegistrationOpen(): boolean {
+  const now = new Date();
+  const nextThursday = getNextThursdayNoon();
+  return now >= nextThursday;
+}
+
+function formatCountdown(ms: number): string {
+  const days = Math.floor(ms / (1000 * 60 * 60 * 24));
+  const hours = Math.floor((ms % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+  const minutes = Math.floor((ms % (1000 * 60 * 60)) / (1000 * 60));
+  
+  const parts: string[] = [];
+  
+  if (days > 0) {
+    parts.push(`${days} ${hebrew.classes.countdownDays}`);
+  }
+  if (hours > 0) {
+    parts.push(`${hours} ${hebrew.classes.countdownHours}`);
+  }
+  if (minutes > 0 || parts.length === 0) {
+    parts.push(`${minutes} ${hebrew.classes.countdownMinutes}`);
+  }
+  
+  if (parts.length === 1) {
+    return parts[0];
+  } else if (parts.length === 2) {
+    return `${parts[0]} ${hebrew.classes.and}${parts[1]}`;
+  } else {
+    return `${parts[0]}, ${parts[1]} ${hebrew.classes.and}${parts[2]}`;
+  }
+}
 
 export default function ClassesScreen() {
   const insets = useSafeAreaInsets();
   const { user } = useAuth();
   const { classes, bookClass, isClassBooked } = useClasses();
+  const [countdown, setCountdown] = useState<string>('');
+  
+  useEffect(() => {
+    const updateCountdown = () => {
+      const now = new Date();
+      const nextThursday = getNextThursdayNoon();
+      const diff = nextThursday.getTime() - now.getTime();
+      
+      if (diff > 0) {
+        setCountdown(formatCountdown(diff));
+      } else {
+        setCountdown('');
+      }
+    };
+    
+    updateCountdown();
+    const interval = setInterval(updateCountdown, 60000);
+    
+    return () => clearInterval(interval);
+  }, []);
 
   const handleBookClass = (classId: string) => {
     try {
@@ -47,16 +150,28 @@ export default function ClassesScreen() {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {classes.map((classItem) => {
+        {classes
+          .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+          .map((classItem) => {
           const booked = isClassBooked(classItem.id);
           const isFull = classItem.enrolled >= classItem.capacity;
+          const isNextWeekClass = isNextWeek(classItem.date);
+          const isRegOpen = isRegistrationOpen();
+          const isLocked = isNextWeekClass && !isRegOpen;
           
           return (
-            <View key={classItem.id} style={styles.classCard}>
-              <View style={styles.classHeader}>
+            <View key={classItem.id} style={[styles.classCard, isLocked && styles.classCardLocked]}>
+              {isLocked && (
+                <View style={styles.lockedBanner}>
+                  <Lock size={16} color={Colors.background} />
+                  <Text style={styles.lockedBannerText}>{hebrew.classes.nextWeek}</Text>
+                </View>
+              )}
+              
+              <View style={[styles.classHeader, isLocked && styles.classHeaderWithBanner]}>
                 <View style={styles.classInfo}>
-                  <Text style={styles.className}>{classItem.title}</Text>
-                  <Text style={styles.instructor}>
+                  <Text style={[styles.className, isLocked && styles.textLocked]}>{classItem.title}</Text>
+                  <Text style={[styles.instructor, isLocked && styles.textLocked]}>
                     {hebrew.classes.instructor}: {classItem.instructor}
                   </Text>
                 </View>
@@ -67,42 +182,53 @@ export default function ClassesScreen() {
                 </View>
               </View>
 
-              <Text style={styles.description}>{classItem.description}</Text>
+              <Text style={[styles.description, isLocked && styles.textLocked]}>{classItem.description}</Text>
+              
+              {isLocked && countdown && (
+                <View style={styles.countdownContainer}>
+                  <Text style={styles.countdownTitle}>{hebrew.classes.registrationOpensIn}</Text>
+                  <Text style={styles.countdownText}>{countdown}</Text>
+                </View>
+              )}
 
-              <View style={styles.classDetails}>
-                <View style={styles.detailItem}>
-                  <Clock size={16} color={Colors.textSecondary} />
-                  <Text style={styles.detailText}>{classItem.time} • {classItem.duration} {hebrew.classes.minutes}</Text>
+              {!isLocked && (
+                <View style={styles.classDetails}>
+                  <View style={styles.detailItem}>
+                    <Clock size={16} color={Colors.textSecondary} />
+                    <Text style={styles.detailText}>{classItem.time} • {classItem.duration} {hebrew.classes.durationMinutes}</Text>
+                  </View>
+                  <View style={styles.detailItem}>
+                    <MapPin size={16} color={Colors.textSecondary} />
+                    <Text style={styles.detailText}>{classItem.location}</Text>
+                  </View>
+                  <View style={styles.detailItem}>
+                    <Users size={16} color={Colors.textSecondary} />
+                    <Text style={styles.detailText}>
+                      {classItem.enrolled}/{classItem.capacity} {hebrew.classes.spots}
+                    </Text>
+                  </View>
                 </View>
-                <View style={styles.detailItem}>
-                  <MapPin size={16} color={Colors.textSecondary} />
-                  <Text style={styles.detailText}>{classItem.location}</Text>
-                </View>
-                <View style={styles.detailItem}>
-                  <Users size={16} color={Colors.textSecondary} />
-                  <Text style={styles.detailText}>
-                    {classItem.enrolled}/{classItem.capacity} {hebrew.classes.spots}
+              )}
+
+              {!isLocked && (
+                <TouchableOpacity
+                  style={[
+                    styles.bookButton,
+                    (booked || isFull) && styles.bookButtonDisabled,
+                    booked && styles.bookButtonBooked,
+                  ]}
+                  onPress={() => handleBookClass(classItem.id)}
+                  disabled={booked || isFull}
+                  activeOpacity={0.7}
+                >
+                  <Text style={[
+                    styles.bookButtonText,
+                    (booked || isFull) && styles.bookButtonTextDisabled,
+                  ]}>
+                    {booked ? hebrew.classes.booked : isFull ? hebrew.classes.full : hebrew.classes.book}
                   </Text>
-                </View>
-              </View>
-
-              <TouchableOpacity
-                style={[
-                  styles.bookButton,
-                  (booked || isFull) && styles.bookButtonDisabled,
-                  booked && styles.bookButtonBooked,
-                ]}
-                onPress={() => handleBookClass(classItem.id)}
-                disabled={booked || isFull}
-                activeOpacity={0.7}
-              >
-                <Text style={[
-                  styles.bookButtonText,
-                  (booked || isFull) && styles.bookButtonTextDisabled,
-                ]}>
-                  {booked ? hebrew.classes.booked : isFull ? hebrew.classes.full : hebrew.classes.book}
-                </Text>
-              </TouchableOpacity>
+                </TouchableOpacity>
+              )}
             </View>
           );
         })}
@@ -157,12 +283,39 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 2,
+    overflow: 'hidden' as const,
+  },
+  classCardLocked: {
+    opacity: 0.7,
+  },
+  lockedBanner: {
+    position: 'absolute' as const,
+    top: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: Colors.accent,
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    zIndex: 1,
+  },
+  lockedBannerText: {
+    fontSize: 12,
+    fontWeight: '700' as const,
+    color: Colors.background,
+    writingDirection: 'rtl' as const,
   },
   classHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
     marginBottom: 12,
+  },
+  classHeaderWithBanner: {
+    marginTop: 32,
   },
   classInfo: {
     flex: 1,
@@ -182,6 +335,9 @@ const styles = StyleSheet.create({
     textAlign: 'right',
     writingDirection: 'rtl' as const,
   },
+  textLocked: {
+    color: Colors.textSecondary,
+  },
   difficultyBadge: {
     paddingHorizontal: 12,
     paddingVertical: 6,
@@ -199,6 +355,29 @@ const styles = StyleSheet.create({
     writingDirection: 'rtl' as const,
     marginBottom: 16,
     lineHeight: 20,
+  },
+  countdownContainer: {
+    backgroundColor: Colors.primary + '15',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: Colors.primary + '30',
+  },
+  countdownTitle: {
+    fontSize: 14,
+    fontWeight: '600' as const,
+    color: Colors.text,
+    textAlign: 'center',
+    writingDirection: 'rtl' as const,
+    marginBottom: 8,
+  },
+  countdownText: {
+    fontSize: 18,
+    fontWeight: '700' as const,
+    color: Colors.primary,
+    textAlign: 'center',
+    writingDirection: 'rtl' as const,
   },
   classDetails: {
     gap: 8,
