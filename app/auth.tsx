@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, TouchableOpacity, I18nManager, ScrollView, ActivityIndicator, Alert, Image, Animated } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, I18nManager, ActivityIndicator, Alert, Image, Animated } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { Mail, Lock, ArrowRight } from 'lucide-react-native';
@@ -156,13 +156,7 @@ export default function AuthScreen() {
               },
             ]}
           >
-            <ScrollView 
-              style={styles.formContainer}
-              contentContainerStyle={styles.formContent}
-              keyboardShouldPersistTaps="handled"
-              showsVerticalScrollIndicator={false}
-            >
-          {mode === 'signin' && (
+            {mode === 'signin' && (
             <>
               <Input
                 label={hebrew.auth.email}
@@ -337,7 +331,6 @@ export default function AuthScreen() {
               </TouchableOpacity>
             </>
           )}
-            </ScrollView>
           </Animated.View>
         </Animated.View>
       )}
@@ -388,13 +381,7 @@ const styles = StyleSheet.create({
     writingDirection: 'rtl' as const,
     textAlign: 'center',
   },
-  formContainer: {
-    flex: 1,
-  },
-  formContent: {
-    gap: 16,
-    paddingBottom: 24,
-  },
+
   modeTitle: {
     fontSize: 24,
     fontWeight: '800' as const,
@@ -494,6 +481,7 @@ const styles = StyleSheet.create({
     width: '90%',
     maxWidth: 400,
     maxHeight: '80%',
+    gap: 16,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.3,
