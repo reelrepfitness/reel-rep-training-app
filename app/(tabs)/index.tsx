@@ -233,12 +233,17 @@ export default function HomeScreen() {
           >
             {mockUserAchievements.slice(0, 4).map((userAchievement) => (
               <View key={userAchievement.id} style={styles.achievementCard}>
-                <Image 
-                  source={{ uri: userAchievement.achievement.icon }} 
-                  style={styles.achievementIcon}
-                />
+                <View style={styles.achievementIconContainer}>
+                  <Image 
+                    source={{ uri: userAchievement.achievement.icon }} 
+                    style={styles.achievementIcon}
+                  />
+                </View>
                 <Text style={styles.achievementTitle} numberOfLines={2}>
                   {userAchievement.achievement.name_hebrew}
+                </Text>
+                <Text style={styles.achievementSubtitle} numberOfLines={2}>
+                  {userAchievement.achievement.description_hebrew}
                 </Text>
                 <View style={styles.achievementProgress}>
                   <View style={styles.progressBarContainer}>
@@ -559,20 +564,31 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 2,
   },
+  achievementIconContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 12,
+  },
   achievementIcon: {
     width: 56,
     height: 56,
     borderRadius: 28,
-    marginBottom: 12,
   },
   achievementTitle: {
     fontSize: 13,
     fontWeight: '700' as const,
     color: Colors.text,
     textAlign: 'center',
+    marginBottom: 4,
+    writingDirection: 'rtl' as const,
+  },
+  achievementSubtitle: {
+    fontSize: 11,
+    fontWeight: '500' as const,
+    color: Colors.textSecondary,
+    textAlign: 'center',
     marginBottom: 12,
     writingDirection: 'rtl' as const,
-    minHeight: 36,
   },
   achievementProgress: {
     width: '100%',
