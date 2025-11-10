@@ -8,6 +8,7 @@ import { Session } from '@supabase/supabase-js';
 export const [AuthProvider, useAuth] = createContextHook(() => {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
+  const [sessionId, setSessionId] = useState<string | null>(null);
 
   const authQuery = useQuery({
     queryKey: ['auth'],
@@ -18,14 +19,21 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
     },
   });
 
+  useEffect(() => {
+    if (authQuery.data !== undefined) {
+      setSession(authQuery.data);
+      setSessionId(authQuery.data?.user?.id || null);
+    }
+  }, [authQuery.data]);
+
   const profileQuery = useQuery({
-    queryKey: ['profile', session?.user?.id],
+    queryKey: ['profile', sessionId],
     queryFn: async () => {
-      if (!session?.user?.id) return null;
+      if (!sessionId) return null;
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
-        .eq('id', session.user.id)
+        .eq('id', sessionId)
         .single();
       if (error) {
         console.error('[Auth] Profile fetch error:', error);
@@ -34,70 +42,40 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
       console.log('[Auth] Profile data:', data);
       return data;
     },
-    enabled: !!session?.user?.id,
+    enabled: !!sessionId,
   });
 
   useEffect(() => {
-    if (authQuery.data !== undefined) {
-      setSession(authQuery.data);
-      if (authQuery.data?.user && profileQuery.data !== undefined) {
-        const profile = profileQuery.data;
-        const user: User = {
-          id: authQuery.data.user.id,
-          name: profile?.name || authQuery.data.user.user_metadata?.name || authQuery.data.user.email?.split('@')[0] || 'User',
-          email: authQuery.data.user.email || '',
-          role: profile?.is_admin ? 'admin' : (profile?.is_coach ? 'coach' : 'user'),
-          profileImage: profile?.avatar_url || authQuery.data.user.user_metadata?.avatar_url || '',
-          subscription: {
-            plan: authQuery.data.user.user_metadata?.subscription_plan || 'premium',
-            classesRemaining: authQuery.data.user.user_metadata?.classes_remaining || 12,
-            renewalDate: authQuery.data.user.user_metadata?.renewal_date || '2024-02-01',
-          },
-          stats: {
-            totalWorkouts: authQuery.data.user.user_metadata?.total_workouts || 0,
-            totalMinutes: authQuery.data.user.user_metadata?.total_minutes || 0,
-            currentStreak: authQuery.data.user.user_metadata?.current_streak || 0,
-          },
-        };
-        setCurrentUser(user);
-      } else {
-        setCurrentUser(null);
-      }
+    if (session?.user && profileQuery.data !== undefined) {
+      const profile = profileQuery.data;
+      const user: User = {
+        id: session.user.id,
+        name: profile?.name || session.user.user_metadata?.name || session.user.email?.split('@')[0] || 'User',
+        email: session.user.email || '',
+        role: profile?.is_admin ? 'admin' : (profile?.is_coach ? 'coach' : 'user'),
+        profileImage: profile?.avatar_url || session.user.user_metadata?.avatar_url || '',
+        subscription: {
+          plan: session.user.user_metadata?.subscription_plan || 'premium',
+          classesRemaining: session.user.user_metadata?.classes_remaining || 12,
+          renewalDate: session.user.user_metadata?.renewal_date || '2024-02-01',
+        },
+        stats: {
+          totalWorkouts: session.user.user_metadata?.total_workouts || 0,
+          totalMinutes: session.user.user_metadata?.total_minutes || 0,
+          currentStreak: session.user.user_metadata?.current_streak || 0,
+        },
+      };
+      setCurrentUser(user);
+    } else if (!session?.user) {
+      setCurrentUser(null);
     }
-  }, [authQuery.data, profileQuery.data]);
+  }, [session, profileQuery.data]);
 
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      console.log('[Auth] State change:', _event, session?.user?.email);
-      setSession(session);
-      if (session?.user) {
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', session.user.id)
-          .single();
-        
-        const user: User = {
-          id: session.user.id,
-          name: profile?.name || session.user.user_metadata?.name || session.user.email?.split('@')[0] || 'User',
-          email: session.user.email || '',
-          role: profile?.is_admin ? 'admin' : (profile?.is_coach ? 'coach' : 'user'),
-          profileImage: profile?.avatar_url || session.user.user_metadata?.avatar_url || '',
-          subscription: {
-            plan: session.user.user_metadata?.subscription_plan || 'premium',
-            classesRemaining: session.user.user_metadata?.classes_remaining || 12,
-            renewalDate: session.user.user_metadata?.renewal_date || '2024-02-01',
-          },
-          stats: {
-            totalWorkouts: session.user.user_metadata?.total_workouts || 0,
-            totalMinutes: session.user.user_metadata?.total_minutes || 0,
-            currentStreak: session.user.user_metadata?.current_streak || 0,
-          },
-        };
-        setCurrentUser(user);
-      } else {
-        setCurrentUser(null);
-      }
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, newSession) => {
+      console.log('[Auth] State change:', _event, newSession?.user?.email);
+      setSession(newSession);
+      setSessionId(newSession?.user?.id || null);
     });
 
     return () => subscription.unsubscribe();
@@ -169,6 +147,7 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
     await supabase.auth.signOut();
     setCurrentUser(null);
     setSession(null);
+    setSessionId(null);
   }, []);
 
   const updateUser = useCallback((updates: Partial<User>) => {
