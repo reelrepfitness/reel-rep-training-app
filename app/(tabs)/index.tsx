@@ -288,6 +288,14 @@ const styles = StyleSheet.create({
   },
   header: {
     marginBottom: 24,
+    backgroundColor: '#171717',
+    borderRadius: 20,
+    padding: 20,
+    shadowColor: Colors.shadow,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 3,
   },
   headerTop: {
     flexDirection: 'row',
@@ -297,14 +305,14 @@ const styles = StyleSheet.create({
   welcomeText: {
     fontSize: 16,
     fontWeight: '500' as const,
-    color: Colors.textSecondary,
+    color: '#ffffff80',
     textAlign: 'right',
     writingDirection: 'rtl' as const,
   },
   userName: {
     fontSize: 28,
     fontWeight: '800' as const,
-    color: Colors.text,
+    color: '#ffffff',
     textAlign: 'right',
     writingDirection: 'rtl' as const,
     marginTop: 4,
@@ -319,7 +327,7 @@ const styles = StyleSheet.create({
   progressBar: {
     width: '100%',
     height: 3,
-    backgroundColor: Colors.border + '40',
+    backgroundColor: '#ffffff20',
     borderRadius: 1.5,
     overflow: 'hidden',
   },
@@ -327,8 +335,10 @@ const styles = StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: 28,
-    backgroundColor: Colors.card,
+    backgroundColor: '#ffffff20',
     position: 'relative' as const,
+    borderWidth: 2,
+    borderColor: '#ffffff30',
   },
   profileImageInner: {
     width: '100%',
@@ -346,7 +356,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 2,
-    borderColor: Colors.background,
+    borderColor: '#171717',
   },
   statsCard: {
     backgroundColor: Colors.card,
