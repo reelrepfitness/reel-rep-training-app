@@ -265,7 +265,6 @@ export default function ClassesScreen() {
         >
           {calendarDays.map((day, index) => {
             const bookedClass = getUserClassForDay(day.dayOfWeek);
-            const isFirstBlockedDay = !day.isAvailable && (index === 0 || calendarDays[index - 1]?.isAvailable);
             const isToday = day.dayOfWeek === todayDayOfWeek && new Date(day.date).toDateString() === today.toDateString();
             
             return (
@@ -285,7 +284,7 @@ export default function ClassesScreen() {
                 activeOpacity={0.7}
                 disabled={!day.isAvailable}
               >
-                {isFirstBlockedDay && countdown ? (
+                {!day.isAvailable && countdown ? (
                   <View style={styles.countdownOverlay}>
                     <Lock size={20} color={Colors.accent} />
                     <Text style={styles.countdownOverlayTitle}>{hebrew.classes.registrationOpensIn}</Text>
