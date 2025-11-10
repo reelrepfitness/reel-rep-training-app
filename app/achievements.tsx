@@ -93,7 +93,7 @@ export default function AchievementsScreen() {
         <Text style={[
           styles.achievementSubtitle,
           completed && styles.completedSubtitleText,
-        ]}>
+        ]} numberOfLines={3}>
           {userAchievement.achievement.description_hebrew}
         </Text>
         {!completed && (
@@ -142,7 +142,7 @@ export default function AchievementsScreen() {
             <Text style={styles.availableTitle} numberOfLines={2}>
               {achievement.name_hebrew}
             </Text>
-            <Text style={styles.availableSubtitle}>
+            <Text style={styles.availableSubtitle} numberOfLines={3}>
               {achievement.description_hebrew}
             </Text>
             {!isChallenge && (
@@ -390,6 +390,8 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.06,
     shadowRadius: 8,
     elevation: 2,
+    borderWidth: 1,
+    borderColor: '#404040',
   },
   challengeCard: {
     backgroundColor: '#171717',
@@ -421,29 +423,35 @@ const styles = StyleSheet.create({
   },
   iconGlow: {
     position: 'absolute' as const,
-    width: 72,
-    height: 72,
-    borderRadius: 36,
+    width: 84,
+    height: 84,
+    borderRadius: 42,
     backgroundColor: Colors.primary,
-    opacity: 0.15,
+    opacity: 0.3,
   },
   iconGlowCompleted: {
     backgroundColor: Colors.success,
-    opacity: 0.25,
+    opacity: 0.4,
   },
   iconGlowChallenge: {
-    backgroundColor: '#ffffff',
-    opacity: 0.1,
+    backgroundColor: '#FFD700',
+    opacity: 0.25,
   },
   achievementIcon: {
     width: 64,
     height: 64,
     borderRadius: 32,
-    borderWidth: 3,
-    borderColor: Colors.border,
+    borderWidth: 4,
+    borderColor: '#FFD700',
+    shadowColor: '#FFD700',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.8,
+    shadowRadius: 12,
+    elevation: 8,
   },
   completedIcon: {
     borderColor: Colors.success,
+    shadowColor: Colors.success,
   },
   completedBadge: {
     position: 'absolute' as const,
@@ -474,6 +482,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginBottom: 10,
     writingDirection: 'rtl' as const,
+    lineHeight: 14,
   },
   completedSubtitleText: {
     color: Colors.success + '80',
@@ -522,6 +531,8 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.06,
     shadowRadius: 8,
     elevation: 2,
+    borderWidth: 1,
+    borderColor: '#404040',
   },
   availableCardContent: {
     flexDirection: 'row',
@@ -538,6 +549,13 @@ const styles = StyleSheet.create({
     width: 64,
     height: 64,
     borderRadius: 32,
+    borderWidth: 4,
+    borderColor: '#FFD700',
+    shadowColor: '#FFD700',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.6,
+    shadowRadius: 10,
+    elevation: 6,
   },
   availableInfo: {
     flex: 1,
