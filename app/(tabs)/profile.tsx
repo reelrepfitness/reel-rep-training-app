@@ -18,7 +18,7 @@ export default function ProfileScreen() {
   const profileStats = [
     { label: hebrew.profile.totalWorkouts, value: stats.workouts.toString(), icon: Dumbbell, color: Colors.primary },
     { label: hebrew.profile.totalMinutes, value: stats.duration.toString(), icon: TrendingUp, color: Colors.accent },
-    { label: hebrew.home.achievements, value: user?.achievements.length.toString() || '0', icon: Trophy, color: Colors.success },
+    { label: hebrew.home.achievements, value: user?.achievements?.length.toString() || '0', icon: Trophy, color: Colors.success },
   ];
 
   const handleSignOut = () => {

@@ -11,10 +11,15 @@ export interface User {
   role: UserRole;
   profileImage?: string;
   subscription?: UserSubscription;
-  achievements: Achievement[];
-  totalWorkouts: number;
-  weeklyGoal: number;
-  currentStreak: number;
+  achievements?: Achievement[];
+  totalWorkouts?: number;
+  weeklyGoal?: number;
+  currentStreak?: number;
+  stats?: {
+    totalWorkouts: number;
+    totalMinutes: number;
+    currentStreak: number;
+  };
 }
 
 export interface UserSubscription {
