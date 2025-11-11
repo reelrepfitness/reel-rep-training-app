@@ -57,6 +57,13 @@
             "./assets/sounds/notification.wav"
           ]
         }
+      ],
+      [
+        "react-native-health",
+        {
+          "healthSharePermission": "Allow $(PRODUCT_NAME) to access your health data",
+          "healthUpdatePermission": "Allow $(PRODUCT_NAME) to update your health data"
+        }
       ]
     ],
     "notification": {
