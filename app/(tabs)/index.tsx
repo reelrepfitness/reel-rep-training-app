@@ -28,13 +28,6 @@ export default function HomeScreen() {
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(30)).current;
 
-  // 🔥 ADMIN REDIRECT - אם זה אדמין, תעביר למסך הבוס
-  useEffect(() => {
-    if (isAdmin) {
-      router.replace('/admin/boss-dashboard');
-    }
-  }, [isAdmin]);
-
   useEffect(() => {
     Animated.parallel([
       Animated.timing(fadeAnim, {
