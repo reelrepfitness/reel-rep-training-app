@@ -182,7 +182,7 @@ export default function HomeScreen() {
           <View style={styles.headerTop}>
             <View style={styles.plateBalanceHeader}>
               <Image 
-                source={{ uri: 'https://pub-e001eb4506b145aa938b5d3badbff6a5.r2.dev/attachments/qmix9kvsaxeiodcudbn96' }}
+                source={{ uri: 'https://res.cloudinary.com/diwe4xzro/image/upload/v1762853881/%D7%98%D7%A7%D7%A1%D7%98_%D7%94%D7%A4%D7%A1%D7%A7%D7%94_%D7%A9%D7%9C%D7%9A.png_i0ydun.png' }}
                 style={styles.plateIconSmall}
               />
               <Text style={styles.plateBalanceText}>{user?.plateBalance || 0}</Text>

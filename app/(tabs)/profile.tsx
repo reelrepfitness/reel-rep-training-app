@@ -48,7 +48,7 @@ export default function ProfileScreen() {
         <View style={styles.plateBalanceCard}>
           <View style={styles.plateBalanceContent}>
             <Image 
-              source={{ uri: 'https://pub-e001eb4506b145aa938b5d3badbff6a5.r2.dev/attachments/qmix9kvsaxeiodcudbn96' }}
+              source={{ uri: 'https://res.cloudinary.com/diwe4xzro/image/upload/v1762853884/%D7%98%D7%A7%D7%A1%D7%98_%D7%94%D7%A4%D7%A1%D7%A7%D7%94_%D7%A9%D7%9C%D7%9A_2.png_zpdglt.png' }}
               style={styles.plateIcon}
             />
             <View>
