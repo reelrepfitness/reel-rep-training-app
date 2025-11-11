@@ -45,9 +45,12 @@ export default function ProfileScreen() {
             )}
           </View>
         </View>
-        <View style={styles.plateBalanceCard}>
+        <TouchableOpacity
+          style={styles.plateBalanceCard}
+          onPress={() => router.push('/plates/store')}
+        >
           <View style={styles.plateBalanceContent}>
-            <Image 
+            <Image
               source={{ uri: 'https://res.cloudinary.com/diwe4xzro/image/upload/v1762853884/%D7%98%D7%A7%D7%A1%D7%98_%D7%94%D7%A4%D7%A1%D7%A7%D7%94_%D7%A9%D7%9C%D7%9A_2.png_zpdglt.png' }}
               style={styles.plateIcon}
             />
@@ -56,7 +59,8 @@ export default function ProfileScreen() {
               <Text style={styles.plateBalanceValue}>{user?.plateBalance || 0}</Text>
             </View>
           </View>
-        </View>
+          <Text style={styles.plateBalanceArrow}>←</Text>
+        </TouchableOpacity>
       </View>
 
       <ScrollView 
@@ -315,11 +319,19 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 8,
     elevation: 2,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
   },
   plateBalanceContent: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 16,
+  },
+  plateBalanceArrow: {
+    fontSize: 20,
+    color: Colors.primary,
+    fontWeight: '700' as const,
   },
   plateIcon: {
     width: 64,
