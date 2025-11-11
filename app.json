@@ -48,16 +48,7 @@
       ],
       "expo-font",
       "expo-web-browser",
-      [
-        "expo-notifications",
-        {
-          "icon": "./assets/images/notification-icon.png",
-          "color": "#da4477",
-          "sounds": [
-            "./assets/sounds/notification.wav"
-          ]
-        }
-      ],
+      "expo-notifications",
       [
         "react-native-health",
         {
@@ -66,12 +57,6 @@
         }
       ]
     ],
-    "notification": {
-      "icon": "./assets/images/notification-icon.png",
-      "color": "#da4477",
-      "androidMode": "default",
-      "androidCollapsedTitle": "{{unread_count}} התראות חדשות"
-    },
     "experiments": {
       "typedRoutes": true
     }
