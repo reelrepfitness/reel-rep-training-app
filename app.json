@@ -18,7 +18,9 @@
       "bundleIdentifier": "app.rork.reel-rep-training-app",
       "infoPlist": {
         "NSHealthShareUsageDescription": "We need access to your health data to track your workouts and award you plates for your activity.",
-        "NSHealthUpdateUsageDescription": "We need access to update your health data with workout information from the app."
+        "NSHealthUpdateUsageDescription": "We need access to update your health data with workout information from the app.",
+        "NSCalendarsUsageDescription": "We need access to your calendar to automatically add your booked classes as events.",
+        "NSRemindersUsageDescription": "We need access to set reminders for your upcoming classes."
       }
     },
     "android": {
@@ -33,7 +35,9 @@
         "android.permission.health.READ_STEPS",
         "android.permission.health.READ_DISTANCE",
         "android.permission.health.READ_ACTIVE_CALORIES_BURNED",
-        "android.permission.health.READ_EXERCISE"
+        "android.permission.health.READ_EXERCISE",
+        "android.permission.READ_CALENDAR",
+        "android.permission.WRITE_CALENDAR"
       ]
     },
     "web": {

@@ -73,14 +73,14 @@ export default function HomeScreen() {
           {
             text: 'אשר ביטול + חיוב',
             style: 'destructive',
-            onPress: () => {
-              cancelBooking(booking.id);
+            onPress: async () => {
+              await cancelBooking(booking.id);
               const newLateCancellations = lateCancellations + 1;
-              
+
               if (newLateCancellations >= 3) {
                 const blockEnd = new Date();
                 blockEnd.setDate(blockEnd.getDate() + 3);
-                updateUser({ 
+                updateUser({
                   lateCancellations: newLateCancellations,
                   blockEndDate: blockEnd.toISOString()
                 });
@@ -104,8 +104,8 @@ export default function HomeScreen() {
         {
           text: 'כן, בטל',
           style: 'destructive',
-          onPress: () => {
-            cancelBooking(booking.id);
+          onPress: async () => {
+            await cancelBooking(booking.id);
             Alert.alert('בוטל', 'השיעור בוטל בהצלחה.');
           }
         }

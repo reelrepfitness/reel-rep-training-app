@@ -121,9 +121,9 @@ export default function ClassesScreen() {
     return () => clearInterval(interval);
   }, []);
 
-  const handleBookClass = (classId: string) => {
+  const handleBookClass = async (classId: string) => {
     try {
-      bookClass(classId);
+      await bookClass(classId);
       Alert.alert(hebrew.common.success, 'נרשמת לשיעור בהצלחה!');
     } catch (error) {
       Alert.alert(hebrew.common.error, (error as Error).message);

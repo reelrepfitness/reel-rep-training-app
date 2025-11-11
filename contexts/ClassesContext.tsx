@@ -5,6 +5,7 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import { Class, ClassBooking } from '@/constants/types';
 import { useAuth } from './AuthContext';
 import { supabase } from '@/constants/supabase';
+import { CalendarIntegrationService } from '@/lib/services/calendar-integration';
 
 const BOOKINGS_STORAGE_KEY = '@reelrep_bookings';
 
@@ -129,7 +130,7 @@ export const [ClassesProvider, useClasses] = createContextHook(() => {
     }
   }, [bookingsQuery.data]);
 
-  const bookClass = useCallback((classId: string) => {
+  const bookClass = useCallback(async (classId: string) => {
     if (!user?.subscription) {
       throw new Error('נדרש מנוי פעיל');
     }
@@ -171,16 +172,51 @@ export const [ClassesProvider, useClasses] = createContextHook(() => {
     setBookings(updated);
     syncBookings(updated);
 
+    // Create calendar event automatically
+    try {
+      await CalendarIntegrationService.createClassEvent(
+        {
+          id: classItem.id,
+          title: classItem.title,
+          date: classItem.date,
+          time: classItem.time,
+          duration: classItem.duration,
+          location: classItem.location,
+          instructor: classItem.instructor,
+          description: classItem.description,
+        },
+        user.id
+      );
+    } catch (calendarError) {
+      // Don't fail the booking if calendar sync fails
+      console.error('Calendar sync failed:', calendarError);
+    }
+
     return newBooking;
   }, [user, classes, bookings, syncBookings]);
 
-  const cancelBooking = useCallback((bookingId: string) => {
+  const cancelBooking = useCallback(async (bookingId: string) => {
+    const booking = bookings.find(b => b.id === bookingId);
+
     const updated = bookings.map(b =>
       b.id === bookingId ? { ...b, status: 'cancelled' as const } : b
     );
     setBookings(updated);
     syncBookings(updated);
-  }, [bookings, syncBookings]);
+
+    // Delete calendar event automatically
+    if (booking && user?.id) {
+      try {
+        await CalendarIntegrationService.deleteClassEvent(
+          booking.classId,
+          user.id
+        );
+      } catch (calendarError) {
+        // Don't fail the cancellation if calendar deletion fails
+        console.error('Calendar deletion failed:', calendarError);
+      }
+    }
+  }, [bookings, syncBookings, user]);
 
   const getMyClasses = useCallback(() => {
     const myBookingIds = bookings
