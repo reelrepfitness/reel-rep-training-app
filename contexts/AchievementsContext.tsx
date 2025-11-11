@@ -263,7 +263,7 @@ export const [AchievementsProvider, useAchievements] = createContextHook(() => {
       .reduce((total, ua) => total + ua.achievement.points, 0);
   }, [userAchievementsQuery.data]);
 
-  return useMemo(() => ({
+  return {
     achievements: achievementsQuery.data || [],
     userAchievements: userAchievementsQuery.data || [],
     activeAchievements: getActiveAchievements(),
@@ -276,19 +276,5 @@ export const [AchievementsProvider, useAchievements] = createContextHook(() => {
     isLoading: achievementsQuery.isLoading || userAchievementsQuery.isLoading,
     acceptChallenge,
     calculateProgress,
-  }), [
-    achievementsQuery.data,
-    achievementsQuery.isLoading,
-    userAchievementsQuery.data,
-    userAchievementsQuery.isLoading,
-    getActiveAchievements,
-    getCompletedAchievements,
-    getAvailableAchievements,
-    getChallengeAchievements,
-    getActiveChallenge,
-    hasActiveChallenge,
-    getTotalPlates,
-    acceptChallenge,
-    calculateProgress,
-  }));
+  };
 });
