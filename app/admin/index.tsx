@@ -1,7 +1,7 @@
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Users, Calendar, TrendingUp, LogOut } from 'lucide-react-native';
+import { Users, Calendar, TrendingUp, LogOut, FileText } from 'lucide-react-native';
 import { useAuth } from '@/contexts/AuthContext';
 import { useWorkouts } from '@/contexts/WorkoutContext';
 import { useClasses } from '@/contexts/ClassesContext';
@@ -55,6 +55,21 @@ export default function AdminDashboard() {
             </View>
           ))}
         </View>
+
+        {/* Green Invoice Button - NEW! */}
+        <TouchableOpacity 
+          style={styles.greenInvoiceButton}
+          onPress={() => router.push('/admin/green-invoice-test')}
+        >
+          <View style={styles.greenInvoiceIcon}>
+            <FileText size={24} color={Colors.primary} />
+          </View>
+          <View style={styles.greenInvoiceContent}>
+            <Text style={styles.greenInvoiceTitle}>🧾 Green Invoice</Text>
+            <Text style={styles.greenInvoiceSubtitle}>ניהול פיננסי ובדיקות מערכת</Text>
+          </View>
+          <Text style={styles.greenInvoiceArrow}>←</Text>
+        </TouchableOpacity>
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>{hebrew.admin.users}</Text>
@@ -161,6 +176,55 @@ const styles = StyleSheet.create({
     color: Colors.textSecondary,
     textAlign: 'center',
     writingDirection: 'rtl' as const,
+  },
+  // Green Invoice Button Styles - NEW!
+  greenInvoiceButton: {
+    backgroundColor: Colors.card,
+    borderRadius: 16,
+    padding: 20,
+    marginBottom: 24,
+    flexDirection: 'row',
+    alignItems: 'center',
+    shadowColor: Colors.shadow,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+    borderWidth: 2,
+    borderColor: Colors.primary + '40',
+  },
+  greenInvoiceIcon: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: Colors.primary + '20',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginLeft: 16,
+  },
+  greenInvoiceContent: {
+    flex: 1,
+    alignItems: 'flex-end',
+  },
+  greenInvoiceTitle: {
+    fontSize: 18,
+    fontWeight: '700' as const,
+    color: Colors.text,
+    textAlign: 'right',
+    writingDirection: 'rtl' as const,
+    marginBottom: 4,
+  },
+  greenInvoiceSubtitle: {
+    fontSize: 14,
+    fontWeight: '500' as const,
+    color: Colors.textSecondary,
+    textAlign: 'right',
+    writingDirection: 'rtl' as const,
+  },
+  greenInvoiceArrow: {
+    fontSize: 24,
+    color: Colors.primary,
+    marginRight: 12,
   },
   section: {
     marginBottom: 24,
