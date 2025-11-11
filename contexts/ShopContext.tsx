@@ -145,6 +145,7 @@ export const [ShopProvider, useShop] = createContextHook(() => {
     isLoading: cartQuery.isLoading,
     isProcessing: checkoutMutation.isPending,
     platesToUse,
+    totalPlates: user?.plateBalance || 0,
     addToCart,
     removeFromCart,
     updateQuantity,
@@ -155,5 +156,5 @@ export const [ShopProvider, useShop] = createContextHook(() => {
     applyPlates,
     resetPlates,
     checkout,
-  }), [cart, packages, cartQuery.isLoading, checkoutMutation.isPending, platesToUse, addToCart, removeFromCart, updateQuantity, clearCart, getTotal, getDiscountedTotal, getMaxPlatesUsable, applyPlates, resetPlates, checkout]);
+  }), [cart, packages, cartQuery.isLoading, checkoutMutation.isPending, platesToUse, user?.plateBalance, addToCart, removeFromCart, updateQuantity, clearCart, getTotal, getDiscountedTotal, getMaxPlatesUsable, applyPlates, resetPlates, checkout]);
 });
