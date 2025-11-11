@@ -1,7 +1,7 @@
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Users, Calendar, TrendingUp, LogOut, FileText } from 'lucide-react-native';
+import { Users, Calendar, TrendingUp, LogOut, FileText, DollarSign, UserCog } from 'lucide-react-native';
 import { useAuth } from '@/contexts/AuthContext';
 import { useWorkouts } from '@/contexts/WorkoutContext';
 import { useClasses } from '@/contexts/ClassesContext';
@@ -56,13 +56,43 @@ export default function AdminDashboard() {
           ))}
         </View>
 
-        {/* Green Invoice Button - NEW! */}
-        <TouchableOpacity 
+        {/* Financial Dashboard Button */}
+        <TouchableOpacity
+          style={styles.greenInvoiceButton}
+          onPress={() => router.push('/admin/financial')}
+        >
+          <View style={styles.greenInvoiceIcon}>
+            <DollarSign size={24} color={Colors.primary} />
+          </View>
+          <View style={styles.greenInvoiceContent}>
+            <Text style={styles.greenInvoiceTitle}>💰 לוח ניהול פיננסי</Text>
+            <Text style={styles.greenInvoiceSubtitle}>הכנסות, חשבוניות וגרפים</Text>
+          </View>
+          <Text style={styles.greenInvoiceArrow}>←</Text>
+        </TouchableOpacity>
+
+        {/* Client Management Button */}
+        <TouchableOpacity
+          style={styles.greenInvoiceButton}
+          onPress={() => router.push('/admin/clients')}
+        >
+          <View style={styles.greenInvoiceIcon}>
+            <UserCog size={24} color={Colors.accent} />
+          </View>
+          <View style={styles.greenInvoiceContent}>
+            <Text style={styles.greenInvoiceTitle}>👥 ניהול לקוחות</Text>
+            <Text style={styles.greenInvoiceSubtitle}>עריכת פרטים, מנויים וחסימות</Text>
+          </View>
+          <Text style={styles.greenInvoiceArrow}>←</Text>
+        </TouchableOpacity>
+
+        {/* Green Invoice Button */}
+        <TouchableOpacity
           style={styles.greenInvoiceButton}
           onPress={() => router.push('/admin/green-invoice-test')}
         >
           <View style={styles.greenInvoiceIcon}>
-            <FileText size={24} color={Colors.primary} />
+            <FileText size={24} color={Colors.success} />
           </View>
           <View style={styles.greenInvoiceContent}>
             <Text style={styles.greenInvoiceTitle}>🧾 Green Invoice</Text>
