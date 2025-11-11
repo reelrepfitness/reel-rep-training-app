@@ -6,7 +6,7 @@ import { useAuth } from "@/contexts/AuthContext";
 
 export default function TabLayout() {
   const router = useRouter();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, isAdmin } = useAuth();
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -32,6 +32,12 @@ export default function TabLayout() {
         <Label>{hebrew.tabs.profile}</Label>
         <Icon sf="person.fill" drawable="ic_profile" />
       </NativeTabs.Trigger>
+      {isAdmin && (
+        <NativeTabs.Trigger name="boss">
+          <Label>בוס</Label>
+          <Icon sf="crown.fill" drawable="ic_admin" />
+        </NativeTabs.Trigger>
+      )}
     </NativeTabs>
   );
 }
