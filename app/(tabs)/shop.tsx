@@ -117,7 +117,7 @@ export default function ShopScreen() {
             
             <View style={styles.platesBalanceCard}>
               <Image 
-                source={{ uri: 'https://rork.app/pa/zydd0ydchzqj50ogzfnat/plate_currency_icon' }}
+                source={{ uri: 'https://pub-e001eb4506b145aa938b5d3badbff6a5.r2.dev/attachments/qmix9kvsaxeiodcudbn96' }}
                 style={styles.plateIcon}
               />
               <View style={styles.platesBalanceInfo}>
