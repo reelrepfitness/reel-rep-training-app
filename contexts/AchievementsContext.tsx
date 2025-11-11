@@ -290,5 +290,5 @@ export const [AchievementsProvider, useAchievements] = createContextHook(() => {
     getTotalPlates,
     acceptChallenge,
     calculateProgress,
-  });
+  }));
 });
