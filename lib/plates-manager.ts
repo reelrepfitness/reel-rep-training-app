@@ -2,6 +2,7 @@
 // Plates Currency Management System
 
 import { supabase } from '@/constants/supabase';
+import { PushNotificationService } from './services/push-notifications';
 
 export interface PlatesTransaction {
   id: string;
@@ -54,7 +55,8 @@ export class PlatesManager {
     userId: string,
     amount: number,
     source: string,
-    description: string
+    description: string,
+    sendNotification: boolean = true
   ): Promise<boolean> {
     try {
       // Get current balance
@@ -81,6 +83,19 @@ export class PlatesManager {
         });
 
       if (transactionError) throw transactionError;
+
+      // Send push notification for plates earned
+      if (sendNotification) {
+        try {
+          const prefs = await PushNotificationService.getNotificationPreferences(userId);
+          if (prefs.plates_earned) {
+            await PushNotificationService.notifyPlatesEarned(amount, description);
+          }
+        } catch (notifError) {
+          console.error('Error sending notification:', notifError);
+          // Don't fail the whole operation if notification fails
+        }
+      }
 
       return true;
     } catch (error) {
@@ -253,12 +268,27 @@ export class PlatesManager {
     achievementName: string,
     points: number
   ): Promise<boolean> {
-    return await this.addPlates(
+    const success = await this.addPlates(
       userId,
       points,
       'achievement',
-      `הושג הישג: ${achievementName}`
+      `הושג הישג: ${achievementName}`,
+      false // Don't send generic notification
     );
+
+    // Send achievement-specific notification
+    if (success) {
+      try {
+        const prefs = await PushNotificationService.getNotificationPreferences(userId);
+        if (prefs.achievements) {
+          await PushNotificationService.notifyAchievementUnlocked(achievementName, points);
+        }
+      } catch (error) {
+        console.error('Error sending achievement notification:', error);
+      }
+    }
+
+    return success;
   }
 
   /**

@@ -15,7 +15,11 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "app.rork.reel-rep-training-app"
+      "bundleIdentifier": "app.rork.reel-rep-training-app",
+      "infoPlist": {
+        "NSHealthShareUsageDescription": "We need access to your health data to track your workouts and award you plates for your activity.",
+        "NSHealthUpdateUsageDescription": "We need access to update your health data with workout information from the app."
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -24,7 +28,12 @@
       },
       "package": "app.rork.reel_rep_training_app",
       "permissions": [
-        "android.permission.VIBRATE"
+        "android.permission.VIBRATE",
+        "android.permission.ACTIVITY_RECOGNITION",
+        "android.permission.health.READ_STEPS",
+        "android.permission.health.READ_DISTANCE",
+        "android.permission.health.READ_ACTIVE_CALORIES_BURNED",
+        "android.permission.health.READ_EXERCISE"
       ]
     },
     "web": {
@@ -38,8 +47,24 @@
         }
       ],
       "expo-font",
-      "expo-web-browser"
+      "expo-web-browser",
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/images/notification-icon.png",
+          "color": "#da4477",
+          "sounds": [
+            "./assets/sounds/notification.wav"
+          ]
+        }
+      ]
     ],
+    "notification": {
+      "icon": "./assets/images/notification-icon.png",
+      "color": "#da4477",
+      "androidMode": "default",
+      "androidCollapsedTitle": "{{unread_count}} התראות חדשות"
+    },
     "experiments": {
       "typedRoutes": true
     }
