@@ -119,6 +119,7 @@ export default function ShopScreen() {
               <Image 
                 source={{ uri: 'https://pub-e001eb4506b145aa938b5d3badbff6a5.r2.dev/attachments/qmix9kvsaxeiodcudbn96' }}
                 style={styles.plateIcon}
+                resizeMode="contain"
               />
               <View style={styles.platesBalanceInfo}>
                 <Text style={styles.platesBalanceLabel}>{hebrew.shop.plateBalance}</Text>
@@ -453,7 +454,6 @@ const styles = StyleSheet.create({
   plateIcon: {
     width: 40,
     height: 40,
-    resizeMode: 'contain' as const,
   },
   platesBalanceInfo: {
     flex: 1,
