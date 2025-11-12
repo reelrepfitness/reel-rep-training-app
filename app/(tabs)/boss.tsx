@@ -12,6 +12,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { FinancialCards } from '@/components/boss/FinancialCards';
 import { QuickTasksList } from '@/components/boss/QuickTasksList';
 import { TodayClassCard } from '@/components/boss/TodayClassCard';
+import { ClientsList } from '@/components/boss/ClientsList';
 
 interface ClassData {
   id: string;
@@ -120,13 +121,8 @@ export default function BossTab() {
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>📊 CRM</Text>
-          <View style={styles.comingSoonCard}>
-            <Text style={styles.comingSoonText}>בקרוב...</Text>
-            <Text style={styles.comingSoonSubtext}>
-              ניהול לידים ומעקב אחר לקוחות פוטנציאליים
-            </Text>
-          </View>
+          <Text style={styles.sectionTitle}>👥 ניהול לקוחות</Text>
+          <ClientsList />
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -185,27 +181,5 @@ const styles = StyleSheet.create({
   emptyText: {
     fontSize: 18,
     color: '#666',
-  },
-  comingSoonCard: {
-    backgroundColor: '#fff',
-    padding: 40,
-    borderRadius: 12,
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  comingSoonText: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#da4477',
-  },
-  comingSoonSubtext: {
-    fontSize: 14,
-    color: '#666',
-    marginTop: 8,
-    textAlign: 'center',
   },
 });

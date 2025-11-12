@@ -30,19 +30,26 @@ function RootLayoutNav() {
       <Stack.Screen name="auth" options={{ headerShown: false }} />
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
       <Stack.Screen name="admin" options={{ headerShown: false }} />
-      <Stack.Screen 
-        name="workout-log" 
-        options={{ 
+      <Stack.Screen
+        name="workout-log"
+        options={{
           presentation: "modal",
           title: "רשום אימון",
-        }} 
+        }}
       />
-      <Stack.Screen 
-        name="achievements" 
-        options={{ 
+      <Stack.Screen
+        name="achievements"
+        options={{
           presentation: "card",
           title: "הישגים",
-        }} 
+        }}
+      />
+      <Stack.Screen
+        name="client-dashboard"
+        options={{
+          presentation: "card",
+          headerShown: false,
+        }}
       />
     </Stack>
   );
